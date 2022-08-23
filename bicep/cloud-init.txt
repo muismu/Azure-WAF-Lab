@@ -1,0 +1,20 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - wget
+  - gnupg
+  - gnupg2
+write_files:
+  - owner: root:root
+    path: /etc/apt/sources.list.d/kali.list
+    content: |
+      deb http://http.kali.org/kali kali-rolling main non-free contrib
+runcmd:
+  - wget -q https://archive.kali.org/archive-key.asc
+  - sudo apt-key add archive-key.asc
+  - sudo apt-get update
+  - sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xfce4
+  - sudo apt-get -y install xfce4-session xrdp
+  - sudo apt install -y nikto
+  - sudo systemctl enable xrdp
+  - sudo systemctl restart xrdp

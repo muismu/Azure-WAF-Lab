@@ -1,0 +1,12 @@
+!#/bin/bash
+sudo apt-get update 
+sudo apt-get install -y wget gnupg gnupg2
+sudo echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" > /etc/apt/sources.list.d/kali.list
+wget -q https://archive.kali.org/archive-key.asc
+sudo apt-key add archive-key.asc
+sudo apt-get update
+sudo apt install -y kali-linux-default
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xfce4
+sudo apt-get -y install xfce4-session xrdp
+sudo systemctl enable xrdp
+sudo systemctl restart xrdp 
