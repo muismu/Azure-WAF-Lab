@@ -66,6 +66,9 @@ nikto -h http://<Application Gateway Front ip> -Display v
 ![TopAttckersIP](./images/AttackIPAddress.png)  
 
 3. 通过Log Analytics分析WAF日志   
+在本实验中，Application Gateway WAF的相关日志会被发送至前面步骤所创建的Log Analytics Workspace中的AzureDiagnostics表中。可以通过ResourceType和OperationName进行过滤，可以参考如下查询语句进行日志查询分析。  
+
+Log Analytics使用[KQL](https://docs.microsoft.com/en-us/azure/data-explorer/kql-quick-reference)进行查询，具体语法可以参考其文档。
 
 ```
 AzureDiagnostics
