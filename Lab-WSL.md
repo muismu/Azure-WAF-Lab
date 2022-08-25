@@ -13,7 +13,7 @@ Windows Subsystem for Linux (WSL)可以使开发者在Windows上无需运行虚�
 ## Windows WSL Kali Linux配置
 ### 安装WSL   
 打开Windows开始菜单，搜索"Turn Windows features on or off"并打开，打开的窗口中选择勾选Hyper-V并确定
-![Windows Programs](./images/TurnonWindowsFeature.png) 
+![Windows Programs](./images/TurnonWindowsFeature.png)  
 在安装完成后需要重启机器  
 
 ### 安装Kali Linux
