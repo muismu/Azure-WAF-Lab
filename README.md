@@ -7,7 +7,7 @@ Azure WAF Hands-on实验旨在演示Azure Web Application Firewall在识别、�
 
 本实验通过在无WAF的情况下模拟直接攻击[OWASP Juice Shop](https://owasp.org/www-project-juice-shop/) Web应用及在使用Azure WAF的情况下进行攻击来演示Azure WAF on Application Gateway上的有效性。
 
-本实验以探索Azure WAF的OWASP防护规则集和日志记录能力为主，不包含高级的应用安全概念，同时也当作应用安全测试的参考，应用安全的范围远远超过本实验所演示的范围。  
+本实验以探索Azure WAF的OWASP防护规则集和日志记录能力为主，不包含高级的应用安全概念，同时也不应作应用安全测试的参考，应用安全的范围远远超过本实验所演示的范围。  
 
 
 # 环境配置   
