@@ -6,7 +6,8 @@ Windows Subsystem for Linux (WSL)可以使开发者在Windows上无需运行虚�
 该测试环境仅用作演示用途，请不要在生产环境或者测试环境中进行测试，如需该种类型测试，请在有安全控制措施的私有网络环境下测试并及时删除包含漏洞的应用。在Azure中测试中请设置合理的隔离措施，禁止分配Identity给Container instance。
 
 ## 部署Azure测试环境  
-### 自动部署 
+### 自动部署
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fmain-wsl.json)
 ### 手动部署
 
 ## Windows WSL Kali Linux配置
