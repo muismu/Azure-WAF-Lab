@@ -5,7 +5,6 @@ param VMSize string = 'Standard_E8ds_v4'
 param VMName string = toLower('KaliVM-${uniqueString(resourceGroup().id)}')
 param Username string = 'azureuser'
 param AppGatewayName string = toLower('AppGW-${uniqueString(resourceGroup().id)}')
-param ApplicationName string = toLower('JuiceShop-${uniqueString(resourceGroup().id)}')
 
 @secure()
 param UserPassword string
