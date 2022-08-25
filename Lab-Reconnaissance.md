@@ -20,7 +20,7 @@
 ## 执行侦察攻击  
 执行侦察攻击最快速、最常见的方法是使用商业或者开源的Web应用程序漏洞扫描工具(Security Scanners)针对目标运行未经过认证和授权的扫描，在本实验中，我们利用[nikto](https://github.com/sullo/nikto)工具分别对两个不同的访问路径进行扫描。  
 * 第一次扫描直接针对Juice Shop应用程序  
-** URL: Contianer Instance的IP地址，未使用EWSL则为Private IP
+** URL: Contianer Instance的IP地址，未使用WSL则为Private IP
 * 第二次扫描针对通过Application Gateway(WAF)发布的Juice Shop  
 ** Application Gateway的IP地址，未使用WSL则为Private IP
 
@@ -44,6 +44,13 @@ nikto -h http://<container instance ip>:3000 -o htm
 nikto -h http://<Application Gateway Front ip> -o htm
 # 取决于实验环境配置，<Application Gateway Front ip>可以为Private或者Public IP
 ```  
+***注意事项***   
+在针对启用了WAF功能的Application Gateway进行扫描时请求可能会被全部拦截，导致长时间无结果，在此种情况下请执行如下命令查看具体情况:   
+```
+nikto -h http://<Application Gateway Front ip> -Display v
+```  
+如果所有请求响应码均为403，则说明请求已经被WAF拦截，可以继续后续实验步骤。 
+
 #### 扫描开始
 ![扫描开始](./images/nikto-WAF-Start.png)
 #### 扫描结束
