@@ -4,12 +4,14 @@ param ResourceLocation string = resourceGroup().location
 param VMSize string = 'Standard_E8ds_v4'
 param VMName string = toLower('KaliVM-${uniqueString(resourceGroup().id)}')
 param Username string = 'azureuser'
+param AppGatewayName string = toLower('AppGW-${uniqueString(resourceGroup().id)}')
+param ApplicationName string = toLower('JuiceShop-${uniqueString(resourceGroup().id)}')
 
 @secure()
 param UserPassword string
 
 resource WAFVNet 'Microsoft.Network/virtualNetworks@2022-01-01' = {
-  name: 'WAFVNet'
+  name: toLower('VNet-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   properties: {
     addressSpace: {
@@ -58,7 +60,7 @@ resource WAFVNet 'Microsoft.Network/virtualNetworks@2022-01-01' = {
 }
 
 resource KaliVMPublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
-  name: 'KaliVMPublicIP'
+  name: toLower('KaliPublicIP-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   sku: {
     name: 'Standard'
@@ -71,7 +73,7 @@ resource KaliVMPublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
 }
 
 resource KaliVMNSG 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
-  name: 'KaliVMNSG'
+  name: toLower('KaliNSG-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   properties: {
     securityRules: [
@@ -106,7 +108,7 @@ resource KaliVMNSG 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
 }
 
 resource KaliVMNIC 'Microsoft.Network/networkInterfaces@2021-05-01' = {
-  name: 'KaliVMNIC'
+  name: toLower('KaliVMNIC-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   properties: {
     ipConfigurations: [
@@ -131,7 +133,7 @@ resource KaliVMNIC 'Microsoft.Network/networkInterfaces@2021-05-01' = {
 
 
 resource KaliVM 'Microsoft.Compute/virtualMachines@2021-11-01' = {
-  name: VMName
+  name: toLower('KaliVM-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   properties: {
     hardwareProfile: {
@@ -168,7 +170,7 @@ resource KaliVM 'Microsoft.Compute/virtualMachines@2021-11-01' = {
 }
 
 resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
-  name: 'juiceshop'
+  name: AppGatewayName
   location: ResourceLocation
   properties: {
     containers: [
@@ -177,8 +179,8 @@ resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
         properties: {
           resources: {
             requests: {
-              cpu: 2
-              memoryInGB: 3
+              cpu: 4
+              memoryInGB: 8
             }
           }
           image: 'bkimminich/juice-shop'
@@ -212,7 +214,7 @@ resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
 }
 
 resource AppGatewayPublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
-  name: 'AppGatewayPublicIP'
+  name: toLower('AppGWPublicIP-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   sku: {
     name: 'Standard'
@@ -225,8 +227,36 @@ resource AppGatewayPublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
 }
 
 
+resource WAFLogWorkSpace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
+  name: toLower('log-${uniqueString(resourceGroup().id)}')
+  location: ResourceLocation 
+  properties: {
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    sku: {
+      name: 'PerGB2018'
+    }
+    workspaceCapping: {
+      dailyQuotaGb: 10
+    }
+  }
+}
+
+resource WAFWorkbook 'Microsoft.Insights/workbooks@2022-04-01' = {
+  name: guid(toLower('workbook-${uniqueString(resourceGroup().id)}'))
+  location: ResourceLocation
+  kind: 'shared'
+  properties: {
+    displayName: toLower('workbook-${uniqueString(resourceGroup().id)}')
+    serializedData: string(loadJsonContent('workbook.json'))
+    version: '1.0'
+    sourceId: WAFLogWorkSpace.id
+    category: 'workbook'
+  }
+}
+
 resource applicationGateway 'Microsoft.Network/applicationGateways@2022-01-01' = {
-  name: 'juiceshop'
+  name: AppGatewayName
   location: ResourceLocation
   properties: {
     sku: {
@@ -297,10 +327,10 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2022-01-01' =
         name: 'juiceshop'
         properties: {
           frontendIPConfiguration: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', 'juiceshop', 'appPrivateFrontIP')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', AppGatewayName, 'appPrivateFrontIP')
           }
           frontendPort: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', 'juiceshop', 'HTTP')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', AppGatewayName, 'HTTP')
           }
           protocol: 'Http'
           requireServerNameIndication: false
@@ -314,13 +344,13 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2022-01-01' =
           ruleType: 'Basic'
           priority: 100
           httpListener: {
-            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', 'juiceshop', 'juiceshop')
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', AppGatewayName, 'juiceshop')
           }
           backendAddressPool: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', 'juiceshop', 'juiceshop')
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', AppGatewayName, 'juiceshop')
           }
           backendHttpSettings: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'juiceshop', 'juiceshop')
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', AppGatewayName, 'juiceshop')
           }
         }
       }
@@ -330,5 +360,33 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2022-01-01' =
       minCapacity: 0
       maxCapacity: 10
     }
+    webApplicationFirewallConfiguration: {
+      ruleSetVersion: '3.0'
+      enabled: true
+      firewallMode: 'Prevention'
+      ruleSetType: 'OWASP'
+    }
+  }
+}
+
+resource AppGWDiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview'= {
+  name: toLower('diagnostic-${uniqueString(resourceGroup().id)}')
+  scope: applicationGateway
+  properties: {
+    workspaceId: WAFLogWorkSpace.id
+    logs: [
+      {
+        category: 'ApplicationGatewayAccessLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayFirewallLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayPerformanceLog'
+        enabled: true
+      }
+    ]
   }
 }

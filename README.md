@@ -21,10 +21,10 @@ Azure WAF Hands-on实验旨在演示Azure Web Application Firewall在识别、�
 本方案通过Windows WSL安装Kali Linux进行攻击渗透测试，由于安装过程需要安装大量的软件包，请在带宽条件允许或者已经提前完成Kali Linux安装的情况下使用该种方案。
 详细步骤请参考[设置WSL及Azure WAF攻击测试环境](./Lab-WSL.md)
 
-# 环境嗅探
-嗅探活动允许攻击者获取目标Web应用的漏洞相关信息以便后续利用，在该部分将会利用Azure WAF检测一些常见和通用的攻击工具的嗅探行为。  
+# 侦察攻击(Reconnaissance Attack)
+侦察攻击允许攻击者获取目标Web应用的漏洞相关信息以便后续利用，在该部分将会利用Azure WAF检测一些常见和通用的攻击工具的嗅探行为。  
 
-详细步骤参考[通过Azure WAF检测恶意嗅探](./Lab-Reconnaissance.md)
+详细步骤参考[通过Azure WAF检测侦察攻击](./Lab-Reconnaissance.md)
 
 # 漏洞利用  
 利用前述步骤中发现的漏洞攻击应用并获取特权，在本次模拟中，会针对应用进行跨站脚本攻击，可以观测到Azure WAF的 **Cross Site Scripting(XSS)** 规则被触发 

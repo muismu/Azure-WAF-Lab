@@ -1,9 +1,10 @@
 targetScope = 'resourceGroup'
 
 param ResourceLocation string = resourceGroup().location
+param AppGWName string = toLower('Juiceshop-${uniqueString(resourceGroup().id)}')
 
 resource WAFVNet 'Microsoft.Network/virtualNetworks@2022-01-01' = {
-  name: 'WAFVNet'
+  name: toLower('VNET-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   properties: {
     addressSpace: {
@@ -18,32 +19,15 @@ resource WAFVNet 'Microsoft.Network/virtualNetworks@2022-01-01' = {
           addressPrefix:'10.0.1.0/24'
         }
       }
-      {
-        name: 'WorkloadSubnet'
-        properties: {
-          addressPrefix: '10.0.2.0/24'
-          delegations: [
-            {
-              name: 'containergroup'
-              properties: {
-                serviceName: 'Microsoft.ContainerInstance/containerGroups'
-              }
-            }
-          ]
-        }
-      }
     ]
   }
   resource ApplicationGatewaySubnet 'subnets' existing = {
     name: 'ApplicationGatewaySubnet'
   }
-  resource WorkloadSubnet 'subnets' existing = {
-    name: 'WorkloadSubnet'
-  }
 }
 
 resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
-  name: 'juiceshop'
+  name: toLower('Juiceshop-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   properties: {
     containers: [
@@ -52,8 +36,8 @@ resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
         properties: {
           resources: {
             requests: {
-              cpu: 2
-              memoryInGB: 3
+              cpu: 4
+              memoryInGB: 8
             }
           }
           image: 'bkimminich/juice-shop'
@@ -81,7 +65,7 @@ resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
 }
 
 resource AppGatewayPublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
-  name: 'AppGatewayPublicIP'
+  name: toLower('AppGWPublicIP-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   sku: {
     name: 'Standard'
@@ -93,9 +77,36 @@ resource AppGatewayPublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   }
 }
 
+resource WAFLogWorkSpace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
+  name: toLower('log-${uniqueString(resourceGroup().id)}')
+  location: ResourceLocation 
+  properties: {
+    publicNetworkAccessForIngestion: 'Enabled'
+    publicNetworkAccessForQuery: 'Enabled'
+    sku: {
+      name: 'PerGB2018'
+    }
+    workspaceCapping: {
+      dailyQuotaGb: 10
+    }
+  }
+}
+
+resource WAFWorkbook 'Microsoft.Insights/workbooks@2022-04-01' = {
+  name: guid(toLower('workbook-${uniqueString(resourceGroup().id)}'))
+  location: ResourceLocation
+  kind: 'shared'
+  properties: {
+    displayName: toLower('workbook-${uniqueString(resourceGroup().id)}')
+    serializedData: string(loadJsonContent('workbook.json'))
+    version: '1.0'
+    sourceId: WAFLogWorkSpace.id
+    category: 'workbook'
+  }
+}
 
 resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' = {
-  name: 'juiceshop'
+  name: AppGWName
   location: ResourceLocation
   properties: {
     sku: {
@@ -108,7 +119,7 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' =
       properties: {
        subnet: {
         id: WAFVNet::ApplicationGatewaySubnet.id
-       } 
+       }
       }
      } 
     ]
@@ -156,10 +167,10 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' =
         name: 'juiceshop'
         properties: {
           frontendIPConfiguration: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', 'juiceshop', 'appPublicFrontIP')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', AppGWName, 'appPublicFrontIP')
           }
           frontendPort: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', 'juiceshop', 'HTTP')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', AppGWName, 'HTTP')
           }
           protocol: 'Http'
           requireServerNameIndication: false
@@ -173,13 +184,13 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' =
           ruleType: 'Basic'
           priority: 100
           httpListener: {
-            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', 'juiceshop', 'juiceshop')
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', AppGWName, 'juiceshop')
           }
           backendAddressPool: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', 'juiceshop', 'juiceshop')
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', AppGWName, 'juiceshop')
           }
           backendHttpSettings: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', 'juiceshop', 'juiceshop')
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', AppGWName, 'juiceshop')
           }
         }
       }
@@ -195,5 +206,27 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' =
       firewallMode: 'Prevention'
       ruleSetType: 'OWASP'
     }
+  }
+}
+
+resource AppGWDiagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview'= {
+  name: toLower('diagnostic-${uniqueString(resourceGroup().id)}')
+  scope: applicationGateway
+  properties: {
+    workspaceId: WAFLogWorkSpace.id
+    logs: [
+      {
+        category: 'ApplicationGatewayAccessLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayFirewallLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayPerformanceLog'
+        enabled: true
+      }
+    ]
   }
 }

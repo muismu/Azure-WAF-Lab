@@ -1,0 +1,7 @@
+AzureDiagnostics
+| where ResourceType == "APPLICATIONGATEWAYS"
+| where OperationName == "ApplicationGatewayFirewall" or Category == "WebApplicationFirewallLogs"
+| extend Rule= iif(Message contains "Mandatory rule. Cannot be disabled.", strcat_array(split(Message, "Mandatory rule. Cannot be disabled. Inbound ", 1), ""), Message)
+| extend Rule = iif(Rule contains "Total Inbound Score", strcat_array(array_concat(split(Rule, " - SQLI=", 0), parse_json('[") -"]'), split(Rule, "):", 1)), ""), Rule)
+| summarize count() by Rule
+| top 50 by count_ desc
