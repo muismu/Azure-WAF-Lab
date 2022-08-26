@@ -18,4 +18,17 @@
 
 * Application Gateway Subnet: Application Gateway需要部署在虚拟网络的专有子网中，该子网只能用于部署一个或者多个Application Gateway，不能用于其它用途  
 * Kali VM Subnet: 用于部署虚拟机，在虚拟机上模拟攻击对应用进行攻击  
-* Container Instance Subnet: 用于部署Container Instance实例
+* Workload Subnet: 用于部署Container Instance实例  
+
+进入Azure Portal,点击`+ Create a resource`, 搜索`Virtual network`，点击`Create`进行创建,创建时只需配置Basics和IP Addresses部分的配置，其余保留默认即可,其中三个子网的配置分别如下:   
+
+| Subnet Name              | Subnet Address Space | 
+| :-----------------------:| :------------------: |
+| ApplicationGatewaySubnet | 10.0.0.0/24 |
+| KaliVMSubnet | 10.0.1.0/24 |
+| WorkloadSubnet | 10.0.2.0/24 |  
+
+![CreateSubnet](./images/a-createVNET-basics.png)
+![CreateAppGWSubnet](./images/a-CreateApplicationGatewaySubnet.png)
+![CreateKaliSubent](./images/a-CreateKaliSubnet.png)
+![CreateWorkloadSubnet](./images/a.createworkloadSubnet.png)
