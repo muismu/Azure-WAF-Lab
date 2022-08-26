@@ -11,7 +11,7 @@ Windows Subsystem for Linux (WSL)可以使开发者在Windows上无需运行虚�
 自动部署通过使用ARM Template实现，可以直接点击如下按钮或者复制[template文件](https://raw.githubusercontent.com/muismu/Azure-WAF-Lab/main/bicep/main-wsl.json)至Azure template服务进行创建。   
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fmain-wsl.json)
 ### 手动部署   
-#### 创建Juice Shop实例  
+#### 1. 创建Juice Shop实例  
 进入Azure Portal,点击`+ Create a resource`, 搜索`Container Instances`，点击`Create`  
 ![CreateContainerInstance](./images/Create_Container_Instance.png)    
 
@@ -24,11 +24,11 @@ Windows Subsystem for Linux (WSL)可以使开发者在Windows上无需运行虚�
 ![Running](./images/Contianer-instance-status.png)
 ![ContainerStatus](./images/Container-Status.png)
 
-#### 确认Juice Shop的运行状态  
+#### 2. 确认Juice Shop的运行状态  
 打开浏览器访问`http://<Container Instance的Public IP地址>:3000`,正常页面如下图所示:  
 ![Normal](./images/juiceapp.png) 
 
-#### 创建WAF Policy
+#### 3. 创建WAF Policy
 在Azure Portal顶部的搜索栏中输入`Web Application Firewall policies`并选择创建对应资源  
 ![CreatePolicy](./images/createWAFPolicy.png) 
 
@@ -36,11 +36,32 @@ Policy的配置如下图所示，仅需修改Basics和Managed Rules两个配置�
 ![PolicyBasics](./images/WAF-Policy-Basics.png)
 ![ManagedPolicy](./images/WAF-Policy-Managed.png)
 
-#### 创建Application Gateway   
+#### 4. 创建Virtual Network  
+Application Gateway需要部署在虚拟网络的专有子网中，该子网只能用于部署一个或者多个Application Gateway，不能用于其它用途。    
+
+进入Azure Portal,点击`+ Create a resource`, 搜索`Virtual network`，点击`Create`进行创建,创建时只需配置Basics和IP Addresses部分的配置，其余保留默认即可  
+![CreateVNetBasics](./images/CreateVNet-basics.png)  
+![CreateVNetIP](./images/CreateVNet-Networking.png)
+#### 5. 创建Application Gateway   
 进入Azure Portal,点击`+ Create a resource`, 搜索`Application Gateway`，点击`Create`  
-![CreateAPPGW]()   
+![CreateAPPGW](./images/CreateApplicationGateway.png)   
+在创建Application Gateway时Tier需要选择WAF_V2，Policy选择步骤3中所创建的juice-shop,Virtual Network选择步骤4中所创建的对应资源
+![Basics](./images/ApplicationGateway-basics.png)
+在配置Frontends时选择创建新的Public IP  
+![Frontends](./images/ApplicationGatewayFrontends.png) 
+在配置Backends时选择新建Backends Pool并使用步骤1中所创建的Container Instance的Public IP地址作为Target  
+![Backends](./images/ApplicationGateway-Backends.png)
+在Configuration部分需要增加Routing Rules的配置,在创建Listener选择80端口
+![AppGWListner](./images/ApplicationGateway-Listener.png)
+配置完Listener之后配置Backend Targets 
+![APPGWBackendTargets](./images/ApplicationGatewayConfig.png)
+在配置Backend Targets时需要新建Backed Settings 
+![APPGWBackendSettings](./images/ApplicationGatewayBackendSettings.png)  
+完成上述配置步骤后点击`Create`  
 
-
+#### 6. 验证Application Gateway正常工作
+在资源创建完成后使用浏览器访问`http://<Application Gateway Public IP>`确认可以正常访问juice shop应用
+![juiceshop](./images/appgw-juiceshop.png)
 
 ## Windows WSL Kali Linux配置
 ### 安装WSL   
