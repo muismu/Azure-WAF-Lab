@@ -85,3 +85,5 @@ sudo apt update
 sudo apt install -y kali-win-kex
 sudo apt install -y kali-linux-large
 ```
+
+# [下一步](./Lab-Reconnaissance.md)

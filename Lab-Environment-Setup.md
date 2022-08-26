@@ -126,3 +126,5 @@ Policy的配置如下图所示，仅需修改Basics和Managed Rules两个配置�
 ![juiceshop](./images/a-private-aapgw-verify.png) 
 
 ![browser](./images/a-private-browser-appgw.png)
+
+# [下一步](./Lab-Reconnaissance.md)
