@@ -254,13 +254,32 @@ resource WAFWorkbook 'Microsoft.Insights/workbooks@2022-04-01' = {
   }
 }
 
-resource applicationGateway 'Microsoft.Network/applicationGateways@2022-01-01' = {
+resource appWAFPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies@2022-01-01' = {
+  name: toLower('juiceshop-${uniqueString(resourceGroup().id)}')
+  location: ResourceLocation
+  properties: {
+    managedRules: {
+      managedRuleSets: [
+        {
+          ruleSetType: 'OWASP'
+          ruleSetVersion: '3.2'
+        }
+      ]
+    }
+    policySettings: {
+      mode: 'Prevention'
+      state: 'Enabled'
+    }
+  }
+}
+
+resource applicationGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
   name: AppGatewayName
   location: ResourceLocation
   properties: {
     sku: {
-      name: 'Standard_v2'
-      tier: 'Standard_v2'
+      name: 'WAF_v2'
+      tier: 'WAF_v2'
     }
     gatewayIPConfigurations: [
      {
@@ -359,11 +378,8 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2022-01-01' =
       minCapacity: 0
       maxCapacity: 10
     }
-    webApplicationFirewallConfiguration: {
-      ruleSetVersion: '3.0'
-      enabled: true
-      firewallMode: 'Prevention'
-      ruleSetType: 'OWASP'
+    firewallPolicy: {
+      id: appWAFPolicy.id
     }
   }
 }
