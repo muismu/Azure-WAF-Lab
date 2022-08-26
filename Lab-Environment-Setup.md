@@ -9,7 +9,13 @@
 # 部署Azure测试环境  
 本实验提供自动部署和手动部署两个选项，如果对Azure非常熟悉且有过Application Gateway及Container Instance相关使用经验可以使用自动部署部署测试环境，否则建议通过手动部署的方式了解相关服务的配置。
 ## 自动部署
-自动部署通过使用ARM Template实现，可以直接点击如下按钮或者复制[template文件](https://raw.githubusercontent.com/muismu/Azure-WAF-Lab/main/bicep/main.json)通过Azure portal进行部署, 所有参数保持默认即可，无需修改。  
+自动部署通过使用ARM Template实现，可以直接点击如下按钮或者复制[template文件](https://raw.githubusercontent.com/muismu/Azure-WAF-Lab/main/bicep/main.json)通过Azure portal进行部署, 除了Region及虚拟机的User Password之外的参数保持默认即可，无需修改。  
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fmain.json)
-## 部署Application Gateway
+## 手动部署   
+### 创建Virtual Network
+在本实验中需要创建如下三个子网:    
+
+* Application Gateway Subnet: Application Gateway需要部署在虚拟网络的专有子网中，该子网只能用于部署一个或者多个Application Gateway，不能用于其它用途  
+* Kali VM Subnet: 用于部署虚拟机，在虚拟机上模拟攻击对应用进行攻击  
+* Container Instance Subnet: 用于部署Container Instance实例

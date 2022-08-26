@@ -13,11 +13,11 @@ Azure WAF Hands-on实验旨在演示Azure Web Application Firewall在识别、�
 # 环境配置   
 本部分内容包含了部署和创建演示环境所需的Azure资源, 目前提供如下两种类型的测试环境设置，可根据实际情况选择其中一种。  
 
-## 利用Azure资源完成所有实验步骤
+## 选项一：利用Azure资源完成所有实验步骤
 详细步骤参考[设置Azure WAF攻击测试环境](./Lab-Environment-Setup.md)按照手册一步一步部署资源。     
 
 
-## 使用Windows WSL及Azure资源完成所有实验步骤 
+## 选项二：使用Windows WSL及Azure资源完成所有实验步骤 
 本方案通过Windows WSL安装Kali Linux进行攻击渗透测试，由于安装过程需要安装大量的软件包，请在带宽条件允许或者已经提前完成Kali Linux安装的情况下使用该种方案。  
 详细步骤请参考[设置WSL及Azure WAF攻击测试环境](./Lab-WSL.md)
 
