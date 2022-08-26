@@ -6,9 +6,41 @@ Windows Subsystem for Linux (WSL)可以使开发者在Windows上无需运行虚�
 该测试环境仅用作演示用途，请不要在生产环境或者测试环境中进行测试，如需该种类型测试，请在有安全控制措施的私有网络环境下测试并及时删除包含漏洞的应用。在Azure中测试中请设置合理的隔离措施，禁止分配Identity给Container instance。
 
 ## 部署Azure测试环境  
+本实验提供自动部署和手动部署两个选项，如果对Azure非常熟悉且有过Application Gateway及Container Instance相关使用经验可以使用自动部署部署测试环境，否则建议通过手动部署的方式了解相关服务的配置。
 ### 自动部署
+自动部署通过使用ARM Template实现，可以直接点击如下按钮或者复制[template文件](https://raw.githubusercontent.com/muismu/Azure-WAF-Lab/main/bicep/main-wsl.json)至Azure template服务进行创建。   
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fmain-wsl.json)
-### 手动部署
+### 手动部署   
+#### 创建Juice Shop实例  
+进入Azure Portal,点击`+ Create a resource`, 搜索`Container Instances`，点击`Create`  
+![CreateContainerInstance](./images/Create_Container_Instance.png)    
+
+按照如下的Basics配置及Networking配置创建juice shop实例,本实验我们使用`bkimminich/juice-shop`镜像并选择Public Network, juice shop应用程序监听`3000`端口。 
+
+![Basics](./images/Container-instance-Basics.png)
+![Networking](./images/Container-instance-Networking.png)
+
+在完成Basics和Networking配置后可以直接选择`Review + create`，其它配置项可按实际情况配置,创建完成后查看对应资源，确认juice shop如下图所示运行正常.  
+![Running](./images/Contianer-instance-status.png)
+![ContainerStatus](./images/Container-Status.png)
+
+#### 确认Juice Shop的运行状态  
+打开浏览器访问`http://<Container Instance的Public IP地址>:3000`,正常页面如下图所示:  
+![Normal](./images/juiceapp.png) 
+
+#### 创建WAF Policy
+在Azure Portal顶部的搜索栏中输入`Web Application Firewall policies`并选择创建对应资源  
+![CreatePolicy](./images/createWAFPolicy.png) 
+
+Policy的配置如下图所示，仅需修改Basics和Managed Rules两个配置类，在本实验中使用OWASP 3.2规则集,其余保持不变即可:
+![PolicyBasics](./images/WAF-Policy-Basics.png)
+![ManagedPolicy](./images/WAF-Policy-Managed.png)
+
+#### 创建Application Gateway   
+进入Azure Portal,点击`+ Create a resource`, 搜索`Application Gateway`，点击`Create`  
+![CreateAPPGW]()   
+
+
 
 ## Windows WSL Kali Linux配置
 ### 安装WSL   
