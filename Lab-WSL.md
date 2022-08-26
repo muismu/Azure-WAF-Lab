@@ -46,15 +46,20 @@ Application Gateway需要部署在虚拟网络的专有子网中，该子网只�
 进入Azure Portal,点击`+ Create a resource`, 搜索`Application Gateway`，点击`Create`  
 ![CreateAPPGW](./images/CreateApplicationGateway.png)   
 在创建Application Gateway时Tier需要选择WAF_V2，Policy选择步骤3中所创建的juice-shop,Virtual Network选择步骤4中所创建的对应资源
-![Basics](./images/ApplicationGateway-basics.png)
+![Basics](./images/ApplicationGateway-basics.png) 
+
 在配置Frontends时选择创建新的Public IP  
 ![Frontends](./images/ApplicationGatewayFrontends.png) 
+
 在配置Backends时选择新建Backends Pool并使用步骤1中所创建的Container Instance的Public IP地址作为Target  
-![Backends](./images/ApplicationGateway-Backends.png)
+![Backends](./images/ApplicationGateway-Backends.png) 
+
 在Configuration部分需要增加Routing Rules的配置,在创建Listener选择80端口
-![AppGWListner](./images/ApplicationGateway-Listener.png)
+![AppGWListner](./images/ApplicationGateway-Listener.png) 
+
 配置完Listener之后配置Backend Targets 
-![APPGWBackendTargets](./images/ApplicationGatewayConfig.png)
+![APPGWBackendTargets](./images/ApplicationGatewayConfig.png) 
+
 在配置Backend Targets时需要新建Backed Settings 
 ![APPGWBackendSettings](./images/ApplicationGatewayBackendSettings.png)  
 完成上述配置步骤后点击`Create`  
