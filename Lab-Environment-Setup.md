@@ -38,12 +38,12 @@
 ![CreateWorkloadSubnet](./images/a.createworkloadSubnet.png)   
 
 ### 2. 创建Kali虚拟机
-由于目前在Azure Marketplace上没有官方的Kali Linux镜像，本实验通过使用Debian 11安装相关的kali工具进行 
-进入Azure Marketplace搜索`Debian 11 "Bullseye"`,然后点击创建 
-![CreateVM](./images/a-CreateVM.png)  
+由于目前在Azure Marketplace上没有官方的Kali Linux镜像，本实验通过使用Ubuntu 22.04安装相关的kali工具进行 
+进入Azure Marketplace搜索`Ubuntu`,然后选择22.04版本点击创建 
+![CreateVM](./images/a-createUbuntu.png)  
 
 在配置VM时使用Password的方式，同时Size建议选择2C8G的机型
-![basic01](./images/a-CreateVM-Basics01.png)
+![basic01](./images/a-createubuntuOption1.png)
 ![basic02](./images/a-CreateVM-Basics02.png)  
 
 在网络配置时选择步骤1中创建的Workload子网并为虚拟机分配公网IP和开放22、3389两个端口,其它配置保持不变即可。
@@ -52,16 +52,14 @@
 在虚拟机创建完成后通过SSH登录执行如下命令安装Kali相关工具及Xrdp服务  
 ```
 sudo apt-get update
-sudo apt install -y wget gnupg gnupg2 
+sudo apt install -y wget gnupg gnupg2 firefox xfce4 xfce4-session xrdp
 sudo echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" >> /etc/apt/sources.list.d/kali.list  
 wget -q https://archive.kali.org/archive-key.asc
 sudo apt-key add archive-key.asc
 sudo apt-get update
-sudo apt install -y nikto
-sudo apt-get install -y dbus-x11
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install xfce4 
-sudo apt-get -y install xfce4-session xrdp firefox-esr
+sudo apt install -y nikto burpsuite
 echo xfce4-session >~/.xsession
+echo export BROWSER=/usr/bin/firefox >> .bashrc
 sudo systemctl enable xrdp
 sudo systemctl restart xrdp
 ```  

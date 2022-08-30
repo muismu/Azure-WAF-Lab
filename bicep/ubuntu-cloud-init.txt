@@ -1,0 +1,24 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - wget
+  - gnupg
+  - gnupg2
+  - firefox
+  - xfce4
+  - xfce4-session
+  - xrdp
+write_files:
+  - owner: root:root
+    path: /etc/apt/sources.list.d/kali.list
+    content: |
+      deb http://http.kali.org/kali kali-rolling main non-free contrib
+runcmd:
+  - wget -q https://archive.kali.org/archive-key.asc
+  - sudo apt-key add archive-key.asc
+  - sudo apt-get update
+  - sudo apt install -y nikto burpsuite
+  - su -c "echo xfce4-session >~/.xsession" azureuser
+  - su -c "echo export BROWSER=/usr/bin/firefox >> .bashrc" azureuser
+  - sudo systemctl enable xrdp
+  - sudo systemctl restart xrdp

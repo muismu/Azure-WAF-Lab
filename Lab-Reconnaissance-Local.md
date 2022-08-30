@@ -78,4 +78,6 @@ AzureDiagnostics
 | extend Rule = iif(Rule contains "Total Inbound Score", strcat_array(array_concat(split(Rule, " - SQLI=", 0), parse_json('[") -"]'), split(Rule, "):", 1)), ""), Rule)
 | summarize count() by Rule
 | top 50 by count_ desc
-```
+```   
+
+# [下一步](./Lab-Attack.md)

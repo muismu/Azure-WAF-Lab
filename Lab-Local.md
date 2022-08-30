@@ -85,5 +85,7 @@ sudo apt update
 sudo apt install -y kali-win-kex
 sudo apt install -y kali-linux-large
 ```
+### 设置Kali Linux桌面 
+执行`kex`命令，设置相关密码后即可使用Kali Linx桌面
 
 # [下一步](./Lab-Reconnaissance.md)
