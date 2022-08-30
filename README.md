@@ -24,12 +24,12 @@ Azure WAF Hands-on实验旨在演示Azure Web Application Firewall在识别、�
 # 侦察攻击(Reconnaissance Attack)
 侦察攻击允许攻击者获取目标Web应用的漏洞相关信息以便后续利用，在该部分将会利用Azure WAF检测一些常见和通用的攻击工具的嗅探行为。  
 
-详细步骤参考[通过Azure WAF检测侦察攻击](./Lab-Reconnaissance.md)
+详细步骤参考[通过Azure WAF检测侦察攻击](./Lab-Reconnaissance-Local.md)
 
 # 漏洞利用  
 利用前述步骤中发现的漏洞攻击应用并获取特权，在本次模拟中，会针对应用进行跨站脚本攻击，可以观测到Azure WAF的 **Cross Site Scripting(XSS)** 规则被触发 
 
-详细步骤参考[攻击测试](./Lab-Attack.md)
+详细步骤参考[攻击测试](./Lab-Attack-Local.md)
 
 # 数据窃取  
 经过前一个阶段的攻击，攻击者已经获取了对应用后端的访问权限并试图窃取敏感数据。本阶段会模拟 **SQL Injection(SQLi)** 攻击对Azure WAF的SQLi能力进行测试。  
