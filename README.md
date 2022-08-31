@@ -38,3 +38,8 @@ Azure WAF Hands-on实验旨在演示Azure Web Application Firewall在识别、�
 详细步骤参考[SQL注入攻击](./Lab-Data-Exfiltration.md)
 
 # 进阶实验
+Azure WAF on Front Door是一个集中化的应用程序防护方案, WAF on Front Door会被部署在Azure全球网络的边缘节点，所有的请求均会在边缘节点被检测，在恶意请求进入Virtual Network之前就能够进行阻止，Front Door Premium支持WAF的所有功能，因此会被用于本实验，Front Door Standard仅支持自定义规则。
+
+本实验我们仍将通过OWASP Juice Shop检测WAF on Front Door的防护能力，同时展示如何通过Azure Private Link连接Front Door和后端应用程序。
+
+详细步骤参考[WAFOnFrontDoor](./Lab-Frontdoor-With-PrivateLink.md)
