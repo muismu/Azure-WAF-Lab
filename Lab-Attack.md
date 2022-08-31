@@ -10,8 +10,8 @@
 
 # 前提条件   
 
-1. 通过[设置Azure WAF攻击测试环境](./Lab-Local.md)完成实验环境的准备
-2. 完成[侦察攻击](./Lab-Reconnaissance-Local.md)部分的相关实验   
+1. 完成[WSL及Burp Suite安装](./Lab-Configure-WSL-Burpsuite.md)
+2. 完成[侦察攻击](./Lab-Reconnaissance.md)   
 
 # 测试步骤   
 [Burp Suite](https://portswigger.net/burp/documentation/desktop/getting-started)是一套全面的Web应用安全测试工具，该工具包含在Kali Linux发行版中，也可以单独下载进行安装。

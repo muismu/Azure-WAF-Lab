@@ -10,8 +10,7 @@
    
 
 # 前提条件  
-在开始本阶段测试前，需要通过[设置Azure WAF攻击测试环境](./Lab-Environment-Setup.md)或者[设置WSL及Azure WAF攻击测试环境](./Lab-WSL.md)完成实验环境的准备。  
-
+完成[WSL及Burp Suite安装](./Lab-Configure-WSL-Burpsuite.md)
 
 # 测试步骤   
 ## 侦察攻击(Reconnaissance Attack)  
@@ -20,9 +19,9 @@
 ## 执行侦察攻击  
 执行侦察攻击最快速、最常见的方法是使用商业或者开源的Web应用程序漏洞扫描工具(Security Scanners)针对目标运行未经过认证和授权的扫描，在本实验中，我们利用[nikto](https://github.com/sullo/nikto)工具分别对两个不同的访问路径进行扫描。  
 * 第一次扫描直接针对Juice Shop应用程序  
-** URL: Contianer Instance的IP地址，未使用WSL则为Private IP
+** URL: Contianer Instance的IP地址
 * 第二次扫描针对通过Application Gateway(WAF)发布的Juice Shop  
-** Application Gateway的IP地址，未使用WSL则为Private IP
+** Application Gateway的IP地址
 
 ### 第一次扫描    
 1. 通过RDP登录Azure VM并打开Terminal或者通过Windows Terminal打开Kali Linux  

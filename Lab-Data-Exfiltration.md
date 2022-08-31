@@ -9,9 +9,9 @@
 
 # 前提条件   
 
-1. 通过[设置Azure WAF攻击测试环境](./Lab-Local.md)完成实验环境的准备
-2. 完成[侦察攻击](./Lab-Reconnaissance-Local.md)部分的相关实验  
-3. 完成[XSS注入攻击](./Lab-Attack-Local.md)部分相关实验  
+1. 完成[WSL及Burp Suite安装](./Lab-Configure-WSL-Burpsuite.md)
+2. 完成[侦察攻击](./Lab-Reconnaissance.md)    
+3. 完成[XSS注入攻击](./Lab-Attack.md)
 
 # 测试步骤   
 在本阶段, 攻击者已经准备使用前面所发现并进行过验证测试的漏洞进行数据窃取等非法访问，通过对Juice Shop应用程序执行SQL注入攻击，我们可以窃取OWASP Juice Shop应用程序所有的用户凭证，为了进行比，将会进行如下两次攻击:   
@@ -20,7 +20,7 @@
 * 第二次攻击：通过Application Gateway(启用WAF功能)向Jucie Shop应用程序执行SQL注入 
 
 ## 第一次攻击   
-1. 启动Burp Suite并按照[XSS注入攻击](./Lab-Attack-Local.md)中的`配置Burp Suite`完成Burp Suite的配置
+1. 启动Burp Suite并按照[XSS注入攻击](./Lab-Attack.md)中的`配置Burp Suite`完成Burp Suite的配置
 2. 打开Burp Suite内置浏览器直接访问Jucie Shop应用程序,访问地址: <Container Instance IP>:/3000 
 3. 在Juice Shop网站上搜索栏中搜索`apple`  
 ![searchapple](./images/BurpSuite/Burp-17-sql-applsearch.png)  
@@ -48,7 +48,7 @@ qwert')) UNION SELECT id, email, password, '4', '5', '6', '7', '8', '9' FROM Use
 ![SuccessResponse](./images/BurpSuite/Burp-22-sql-inject-success.png)  
 
 ## 第二次攻击
-1. 启动Burp Suite并按照[XSS注入攻击](./Lab-Attack-Local.md)中的`配置Burp Suite`完成Burp Suite的配置
+1. 启动Burp Suite并按照[XSS注入攻击](./Lab-Attack.md)中的`配置Burp Suite`完成Burp Suite的配置
 2. 打开Burp Suite内置浏览器直接访问Application Gateway地址 
 3. 在Juice Shop网站上搜索栏中搜索`apple`  
 ![searchapple](./images/BurpSuite/Burp-23-gw-applesearch.png)
