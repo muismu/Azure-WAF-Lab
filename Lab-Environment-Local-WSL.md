@@ -145,4 +145,28 @@ Listener部分配置如下:
 在资源创建完成后使用浏览器访问`http://<Contianer Instance Public IP>:3000`确认可以正常访问juice shop应用
 ![juiceshop](./images/Local-WSL/WSL-18-VNET-Juiceshop-b-verification.png)
 
+### 8. 创建Log Analytics Workspace  
+(1). 在Azure Portal首页,搜索`Log Analytics workspaces`, 然后点击`Create`
+
+(2). 在Baiscs配置页面，输入workspace的名字及选择对应的区域  
+
+![workspace](./images/Vm/workspace-1-advanced.png)
+
+(3). 其它配置保持默认即可，点击`Review + create`创建资源  
+
+### 9. 配置Application Gateway的诊断日志 
+(1). 选择[步骤5](#5-创建application-gateway)所创建的Application Gateway  
+(2). 打开Application Gateway的`Diagnostic settings`
+
+![AppGWDiagnostic](./images/appgw/appgw-7-appgw-diagnostics.png)
+
+(3). 点击`Add diagnostic setting`新增配置,按如下配置将Application Gateway Firewall Log发送到[步骤9](#9-创建log-analytics-workspace)中
+
+![配置diagnostic](./images/appgw/appgw-9-appgw-logs.png)
+
+### 10. 创建WAF Workbook  
+点击下面部署按钮部署Azure WAF workbook
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fworkbooks.json)
+
 # [下一步](./Lab-Configure-WSL-Burpsuite.md)

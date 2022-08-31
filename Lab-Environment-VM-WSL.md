@@ -200,17 +200,9 @@ Listener部分配置如下:
 ![配置diagnostic](./images/appgw/appgw-9-appgw-logs.png)
 
 ### 11. 创建WAF Workbook  
-(1). 在Azure Portal首页,搜索`Azure Workbooks`, Azure Workbooks界面点击`Create`
-(2). Monitor | Workbooks |Gallery界面点击`+ New`，创建新的Workbooks 
+点击下面部署按钮部署Azure WAF workbook
 
-![workbooks](./images/Vm/workbooks-1-new.png)
-
-(3). 在新界面点击`Advanced Editor`
-
-![AdvancedEditor](./images/Vm/workbooks-2-advanced.png)
-
-(4). 复制[Workbooks ARM Template](https://raw.githubusercontent.com/muismu/Azure-WAF-Lab/main/bicep/workbooks.json)的内容粘贴至编辑器中并保存  
-
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fworkbooks.json)
 
 
 # [下一步](./Lab-Configure-WSL-Burpsuite.md)
