@@ -10,7 +10,7 @@ Azure WAF Hands-on实验旨在演示Azure Web Application Firewall在识别、�
 本实验以探索Azure WAF的OWASP防护规则集和日志记录能力为主，不包含高级的应用安全概念，同时也不应作应用安全测试的参考，应用安全的范围远远超过本实验所演示的范围。  
 
 
-# 环境配置   
+# 环境配置(Environment Setup)
 本部分内容包含了部署和创建演示环境所需的Azure资源, 目前提供如下两种类型的测试环境设置，可根据实际情况选择其中一种。  
 
 ## 选项一：利用Azure资源完成所有实验步骤
@@ -27,12 +27,12 @@ Azure WAF Hands-on实验旨在演示Azure Web Application Firewall在识别、�
 
 详细步骤参考[通过Azure WAF检测侦察攻击](./Lab-Reconnaissance.md)
 
-## 漏洞利用  
+## 漏洞利用(Vulnerability Exploit)
 利用前述步骤中发现的漏洞攻击应用并获取特权，在本次模拟中，会针对应用进行跨站脚本攻击，可以观测到Azure WAF的 **Cross Site Scripting(XSS)** 规则被触发 
 
 详细步骤参考[攻击测试](./Lab-Attack.md)
 
-## 数据窃取  
+## 数据窃取(Exfiltration)
 经过前一个阶段的攻击，攻击者已经获取了对应用后端的访问权限并试图窃取敏感数据。本阶段会模拟 **SQL Injection(SQLi)** 攻击对Azure WAF的SQLi能力进行测试。  
 
 详细步骤参考[SQL注入攻击](./Lab-Data-Exfiltration.md)
