@@ -35,3 +35,5 @@ Azure WAF Hands-on实验旨在演示Azure Web Application Firewall在识别、�
 经过前一个阶段的攻击，攻击者已经获取了对应用后端的访问权限并试图窃取敏感数据。本阶段会模拟 **SQL Injection(SQLi)** 攻击对Azure WAF的SQLi能力进行测试。  
 
 详细步骤参考[SQL注入攻击](./Lab-Data-Exfiltration.md)
+
+# Azure WAF With Front Door

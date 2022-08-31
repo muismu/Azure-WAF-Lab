@@ -1,10 +1,16 @@
 targetScope = 'resourceGroup'
 
 param ResourceLocation string = resourceGroup().location
-param AppGWName string = toLower('Juiceshop-${uniqueString(resourceGroup().id)}')
+param VMSize string = 'Standard_E8ds_v4'
+param VMName string = toLower('KaliVM-${uniqueString(resourceGroup().id)}')
+param Username string = 'azureuser'
+param AppGatewayName string = toLower('AppGW-${uniqueString(resourceGroup().id)}')
+
+@secure()
+param UserPassword string
 
 resource WAFVNet 'Microsoft.Network/virtualNetworks@2022-01-01' = {
-  name: toLower('VNET-${uniqueString(resourceGroup().id)}')
+  name: toLower('VNet-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   properties: {
     addressSpace: {
@@ -52,8 +58,116 @@ resource WAFVNet 'Microsoft.Network/virtualNetworks@2022-01-01' = {
   }
 }
 
+resource KaliVMPublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
+  name: toLower('KaliPublicIP-${uniqueString(resourceGroup().id)}')
+  location: ResourceLocation
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static'
+    publicIPAddressVersion: 'IPv4'
+    idleTimeoutInMinutes: 4
+  }
+}
+
+resource KaliVMNSG 'Microsoft.Network/networkSecurityGroups@2021-05-01' = {
+  name: toLower('KaliNSG-${uniqueString(resourceGroup().id)}')
+  location: ResourceLocation
+  properties: {
+    securityRules: [
+      {
+        name: 'SSH'
+        properties: {
+          priority: 1000
+          protocol: 'Tcp'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '22'
+        }
+      }
+      {
+        name: 'RDP'
+        properties: {
+          priority: 800
+          protocol: 'Tcp'
+          access: 'Allow'
+          direction: 'Inbound'
+          sourceAddressPrefix: '*'
+          sourcePortRange: '*'
+          destinationAddressPrefix: '*'
+          destinationPortRange: '3389'
+        }
+      }
+    ]
+  }
+}
+
+resource KaliVMNIC 'Microsoft.Network/networkInterfaces@2021-05-01' = {
+  name: toLower('KaliVMNIC-${uniqueString(resourceGroup().id)}')
+  location: ResourceLocation
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          subnet: {
+            id: WAFVNet::KaliSubnet.id
+          }
+          privateIPAllocationMethod: 'Dynamic'
+          publicIPAddress: {
+            id: KaliVMPublicIP.id
+          }
+        }
+      }
+    ]
+    networkSecurityGroup: {
+      id: KaliVMNSG.id
+    }
+  }
+}
+
+resource KaliVM 'Microsoft.Compute/virtualMachines@2022-03-01' = {
+  name: VMName
+  location: ResourceLocation
+  properties: {
+    hardwareProfile: {
+      vmSize: VMSize
+    }
+    osProfile: {
+      computerName: 'Kali'
+      adminUsername: Username
+      adminPassword: UserPassword
+    }
+    storageProfile: {
+      imageReference: {
+        publisher: 'MicrosoftWindowsServer'
+        offer: 'WindowsServer'
+        sku: '2022-datacenter-azure-edition'
+        version: 'latest'
+      }
+      osDisk: {
+        createOption: 'FromImage'
+        managedDisk: {
+          storageAccountType: 'Premium_LRS'
+        }
+      }
+    }
+    networkProfile: {
+      networkInterfaces: [
+        {
+          id: KaliVMNIC.id
+        }
+      ]
+    }
+  }
+}
+
 resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
-  name: toLower('Juiceshop-b-${uniqueString(resourceGroup().id)}')
+  name: toLower('juiceshop-a-${uniqueString(resourceGroup().id)}')
   location: ResourceLocation
   properties: {
     containers: [
@@ -62,8 +176,8 @@ resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
         properties: {
           resources: {
             requests: {
-              cpu: 4
-              memoryInGB: 8
+              cpu: 2
+              memoryInGB: 4
             }
           }
           image: 'bkimminich/juice-shop:v14.1.1'
@@ -79,7 +193,7 @@ resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
     osType: 'Linux'
     restartPolicy: 'OnFailure'
     ipAddress: {
-      type: 'Public'
+      type: 'Private'
       ports: [
         {
           port: 3000
@@ -87,6 +201,56 @@ resource JuiceShop 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
         }
       ]
     }
+    subnetIds: [
+      {
+        id: WAFVNet::WorkloadSubnet.id
+        name: 'WorkloadSubnet'
+      }
+    ]
+  }
+}
+
+resource JuiceShopb 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
+  name: toLower('juiceshop-b-${uniqueString(resourceGroup().id)}')
+  location: ResourceLocation
+  properties: {
+    containers: [
+      {
+        name: 'juiceshop'
+        properties: {
+          resources: {
+            requests: {
+              cpu: 2
+              memoryInGB: 4
+            }
+          }
+          image: 'bkimminich/juice-shop:v14.1.1'
+          ports: [
+            {
+              port: 3000
+              protocol: 'TCP'
+            }
+          ]
+        }
+      }
+    ]
+    osType: 'Linux'
+    restartPolicy: 'OnFailure'
+    ipAddress: {
+      type: 'Private'
+      ports: [
+        {
+          port: 3000
+          protocol: 'TCP'
+        }
+      ]
+    }
+    subnetIds: [
+      {
+        id: WAFVNet::WorkloadSubnet.id
+        name: 'WorkloadSubnet'
+      }
+    ]
   }
 }
 
@@ -102,6 +266,7 @@ resource AppGatewayPublicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
     idleTimeoutInMinutes: 4
   }
 }
+
 
 resource WAFLogWorkSpace 'Microsoft.OperationalInsights/workspaces@2021-12-01-preview' = {
   name: toLower('log-${uniqueString(resourceGroup().id)}')
@@ -150,52 +315,8 @@ resource appWAFPolicy 'Microsoft.Network/ApplicationGatewayWebApplicationFirewal
   }
 }
 
-resource JuiceShopWAF 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
-  name: toLower('Juiceshop-a-${uniqueString(resourceGroup().id)}')
-  location: ResourceLocation
-  properties: {
-    containers: [
-      {
-        name: 'juiceshop'
-        properties: {
-          resources: {
-            requests: {
-              cpu: 4
-              memoryInGB: 8
-            }
-          }
-          image: 'bkimminich/juice-shop:v14.1.1'
-          ports: [
-            {
-              port: 3000
-              protocol: 'TCP'
-            }
-          ]
-        }
-      }
-    ]
-    osType: 'Linux'
-    restartPolicy: 'OnFailure'
-    ipAddress: {
-      type: 'Private'
-      ports: [
-        {
-          port: 3000
-          protocol: 'TCP'
-        }
-      ]
-    }
-    subnetIds: [
-      {
-        id: WAFVNet::WorkloadSubnet.id
-        name: 'WorkloadSubnet'
-      }
-    ]
-  }
-}
-
-resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' = {
-  name: AppGWName
+resource applicationGateway 'Microsoft.Network/applicationGateways@2021-08-01' = {
+  name: AppGatewayName
   location: ResourceLocation
   properties: {
     sku: {
@@ -208,7 +329,7 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' =
       properties: {
        subnet: {
         id: WAFVNet::ApplicationGatewaySubnet.id
-       }
+       } 
       }
      } 
     ]
@@ -218,6 +339,16 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' =
         properties: {
           publicIPAddress: {
             id: AppGatewayPublicIP.id
+          }
+        }
+      }
+      {
+        name: 'appPrivateFrontIP'
+        properties: {
+          privateIPAllocationMethod: 'Static'
+          privateIPAddress: '10.0.1.10'
+          subnet: {
+            id: WAFVNet::ApplicationGatewaySubnet.id
           }
         }
       }
@@ -236,7 +367,7 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' =
         properties: {
           backendAddresses: [
             {
-              ipAddress: JuiceShopWAF.properties.ipAddress.ip
+              ipAddress: JuiceShop.properties.ipAddress.ip
             }
           ]
         }
@@ -256,10 +387,10 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' =
         name: 'juiceshop'
         properties: {
           frontendIPConfiguration: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', AppGWName, 'appPublicFrontIP')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', AppGatewayName, 'appPrivateFrontIP')
           }
           frontendPort: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', AppGWName, 'HTTP')
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', AppGatewayName, 'HTTP')
           }
           protocol: 'Http'
           requireServerNameIndication: false
@@ -273,13 +404,13 @@ resource applicationGateway 'Microsoft.Network/applicationGateways@2021-03-01' =
           ruleType: 'Basic'
           priority: 100
           httpListener: {
-            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', AppGWName, 'juiceshop')
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', AppGatewayName, 'juiceshop')
           }
           backendAddressPool: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', AppGWName, 'juiceshop')
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', AppGatewayName, 'juiceshop')
           }
           backendHttpSettings: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', AppGWName, 'juiceshop')
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', AppGatewayName, 'juiceshop')
           }
         }
       }

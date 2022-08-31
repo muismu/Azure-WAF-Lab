@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.9.1.41621",
-      "templateHash": "5365802713426184088"
+      "templateHash": "12131667777882383436"
     }
   },
   "parameters": {
@@ -13,9 +13,24 @@
       "type": "string",
       "defaultValue": "[resourceGroup().location]"
     },
-    "AppGWName": {
+    "VMSize": {
       "type": "string",
-      "defaultValue": "[toLower(format('Juiceshop-{0}', uniqueString(resourceGroup().id)))]"
+      "defaultValue": "Standard_E8ds_v4"
+    },
+    "VMName": {
+      "type": "string",
+      "defaultValue": "[toLower(format('KaliVM-{0}', uniqueString(resourceGroup().id)))]"
+    },
+    "Username": {
+      "type": "string",
+      "defaultValue": "azureuser"
+    },
+    "AppGatewayName": {
+      "type": "string",
+      "defaultValue": "[toLower(format('AppGW-{0}', uniqueString(resourceGroup().id)))]"
+    },
+    "UserPassword": {
+      "type": "secureString"
     }
   },
   "variables": {
@@ -574,7 +589,7 @@
     {
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2022-01-01",
-      "name": "[toLower(format('VNET-{0}', uniqueString(resourceGroup().id)))]",
+      "name": "[toLower(format('VNet-{0}', uniqueString(resourceGroup().id)))]",
       "location": "[parameters('ResourceLocation')]",
       "properties": {
         "addressSpace": {
@@ -613,9 +628,129 @@
       }
     },
     {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2021-05-01",
+      "name": "[toLower(format('KaliPublicIP-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "publicIPAddressVersion": "IPv4",
+        "idleTimeoutInMinutes": 4
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2021-05-01",
+      "name": "[toLower(format('KaliNSG-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "SSH",
+            "properties": {
+              "priority": 1000,
+              "protocol": "Tcp",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "22"
+            }
+          },
+          {
+            "name": "RDP",
+            "properties": {
+              "priority": 800,
+              "protocol": "Tcp",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "3389"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2021-05-01",
+      "name": "[toLower(format('KaliVMNIC-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))), 'KaliSubnet')]"
+              },
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', toLower(format('KaliPublicIP-{0}', uniqueString(resourceGroup().id))))]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', toLower(format('KaliNSG-{0}', uniqueString(resourceGroup().id))))]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', toLower(format('KaliNSG-{0}', uniqueString(resourceGroup().id))))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses', toLower(format('KaliPublicIP-{0}', uniqueString(resourceGroup().id))))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2022-03-01",
+      "name": "[parameters('VMName')]",
+      "location": "[parameters('ResourceLocation')]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('VMSize')]"
+        },
+        "osProfile": {
+          "computerName": "Kali",
+          "adminUsername": "[parameters('Username')]",
+          "adminPassword": "[parameters('UserPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2022-datacenter-azure-edition",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            }
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', toLower(format('KaliVMNIC-{0}', uniqueString(resourceGroup().id))))]"
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', toLower(format('KaliVMNIC-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
       "type": "Microsoft.ContainerInstance/containerGroups",
       "apiVersion": "2021-09-01",
-      "name": "[toLower(format('Juiceshop-b-{0}', uniqueString(resourceGroup().id)))]",
+      "name": "[toLower(format('juiceshop-a-{0}', uniqueString(resourceGroup().id)))]",
       "location": "[parameters('ResourceLocation')]",
       "properties": {
         "containers": [
@@ -624,8 +759,8 @@
             "properties": {
               "resources": {
                 "requests": {
-                  "cpu": 4,
-                  "memoryInGB": 8
+                  "cpu": 2,
+                  "memoryInGB": 4
                 }
               },
               "image": "bkimminich/juice-shop:v14.1.1",
@@ -641,15 +776,72 @@
         "osType": "Linux",
         "restartPolicy": "OnFailure",
         "ipAddress": {
-          "type": "Public",
+          "type": "Private",
           "ports": [
             {
               "port": 3000,
               "protocol": "TCP"
             }
           ]
-        }
-      }
+        },
+        "subnetIds": [
+          {
+            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))), 'WorkloadSubnet')]",
+            "name": "WorkloadSubnet"
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ContainerInstance/containerGroups",
+      "apiVersion": "2021-09-01",
+      "name": "[toLower(format('juiceshop-b-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "properties": {
+        "containers": [
+          {
+            "name": "juiceshop",
+            "properties": {
+              "resources": {
+                "requests": {
+                  "cpu": 2,
+                  "memoryInGB": 4
+                }
+              },
+              "image": "bkimminich/juice-shop:v14.1.1",
+              "ports": [
+                {
+                  "port": 3000,
+                  "protocol": "TCP"
+                }
+              ]
+            }
+          }
+        ],
+        "osType": "Linux",
+        "restartPolicy": "OnFailure",
+        "ipAddress": {
+          "type": "Private",
+          "ports": [
+            {
+              "port": 3000,
+              "protocol": "TCP"
+            }
+          ]
+        },
+        "subnetIds": [
+          {
+            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))), 'WorkloadSubnet')]",
+            "name": "WorkloadSubnet"
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))))]"
+      ]
     },
     {
       "type": "Microsoft.Network/publicIPAddresses",
@@ -719,57 +911,9 @@
       }
     },
     {
-      "type": "Microsoft.ContainerInstance/containerGroups",
-      "apiVersion": "2021-09-01",
-      "name": "[toLower(format('Juiceshop-a-{0}', uniqueString(resourceGroup().id)))]",
-      "location": "[parameters('ResourceLocation')]",
-      "properties": {
-        "containers": [
-          {
-            "name": "juiceshop",
-            "properties": {
-              "resources": {
-                "requests": {
-                  "cpu": 4,
-                  "memoryInGB": 8
-                }
-              },
-              "image": "bkimminich/juice-shop:v14.1.1",
-              "ports": [
-                {
-                  "port": 3000,
-                  "protocol": "TCP"
-                }
-              ]
-            }
-          }
-        ],
-        "osType": "Linux",
-        "restartPolicy": "OnFailure",
-        "ipAddress": {
-          "type": "Private",
-          "ports": [
-            {
-              "port": 3000,
-              "protocol": "TCP"
-            }
-          ]
-        },
-        "subnetIds": [
-          {
-            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNET-{0}', uniqueString(resourceGroup().id))), 'WorkloadSubnet')]",
-            "name": "WorkloadSubnet"
-          }
-        ]
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', toLower(format('VNET-{0}', uniqueString(resourceGroup().id))))]"
-      ]
-    },
-    {
       "type": "Microsoft.Network/applicationGateways",
-      "apiVersion": "2021-03-01",
-      "name": "[parameters('AppGWName')]",
+      "apiVersion": "2021-08-01",
+      "name": "[parameters('AppGatewayName')]",
       "location": "[parameters('ResourceLocation')]",
       "properties": {
         "sku": {
@@ -781,7 +925,7 @@
             "name": "appgatewayConfig",
             "properties": {
               "subnet": {
-                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNET-{0}', uniqueString(resourceGroup().id))), 'ApplicationGatewaySubnet')]"
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))), 'ApplicationGatewaySubnet')]"
               }
             }
           }
@@ -792,6 +936,16 @@
             "properties": {
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', toLower(format('AppGWPublicIP-{0}', uniqueString(resourceGroup().id))))]"
+              }
+            }
+          },
+          {
+            "name": "appPrivateFrontIP",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "10.0.1.10",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))), 'ApplicationGatewaySubnet')]"
               }
             }
           }
@@ -810,7 +964,7 @@
             "properties": {
               "backendAddresses": [
                 {
-                  "ipAddress": "[reference(resourceId('Microsoft.ContainerInstance/containerGroups', toLower(format('Juiceshop-a-{0}', uniqueString(resourceGroup().id))))).ipAddress.ip]"
+                  "ipAddress": "[reference(resourceId('Microsoft.ContainerInstance/containerGroups', toLower(format('juiceshop-a-{0}', uniqueString(resourceGroup().id))))).ipAddress.ip]"
                 }
               ]
             }
@@ -830,10 +984,10 @@
             "name": "juiceshop",
             "properties": {
               "frontendIPConfiguration": {
-                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', parameters('AppGWName'), 'appPublicFrontIP')]"
+                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', parameters('AppGatewayName'), 'appPrivateFrontIP')]"
               },
               "frontendPort": {
-                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts', parameters('AppGWName'), 'HTTP')]"
+                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts', parameters('AppGatewayName'), 'HTTP')]"
               },
               "protocol": "Http",
               "requireServerNameIndication": false
@@ -847,13 +1001,13 @@
               "ruleType": "Basic",
               "priority": 100,
               "httpListener": {
-                "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', parameters('AppGWName'), 'juiceshop')]"
+                "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', parameters('AppGatewayName'), 'juiceshop')]"
               },
               "backendAddressPool": {
-                "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', parameters('AppGWName'), 'juiceshop')]"
+                "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', parameters('AppGatewayName'), 'juiceshop')]"
               },
               "backendHttpSettings": {
-                "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', parameters('AppGWName'), 'juiceshop')]"
+                "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', parameters('AppGatewayName'), 'juiceshop')]"
               }
             }
           }
@@ -870,14 +1024,14 @@
       "dependsOn": [
         "[resourceId('Microsoft.Network/publicIPAddresses', toLower(format('AppGWPublicIP-{0}', uniqueString(resourceGroup().id))))]",
         "[resourceId('Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies', toLower(format('juiceshop-{0}', uniqueString(resourceGroup().id))))]",
-        "[resourceId('Microsoft.ContainerInstance/containerGroups', toLower(format('Juiceshop-a-{0}', uniqueString(resourceGroup().id))))]",
-        "[resourceId('Microsoft.Network/virtualNetworks', toLower(format('VNET-{0}', uniqueString(resourceGroup().id))))]"
+        "[resourceId('Microsoft.ContainerInstance/containerGroups', toLower(format('juiceshop-a-{0}', uniqueString(resourceGroup().id))))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))))]"
       ]
     },
     {
       "type": "Microsoft.Insights/diagnosticSettings",
       "apiVersion": "2021-05-01-preview",
-      "scope": "[format('Microsoft.Network/applicationGateways/{0}', parameters('AppGWName'))]",
+      "scope": "[format('Microsoft.Network/applicationGateways/{0}', parameters('AppGatewayName'))]",
       "name": "[toLower(format('diagnostic-{0}', uniqueString(resourceGroup().id)))]",
       "properties": {
         "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', toLower(format('log-{0}', uniqueString(resourceGroup().id))))]",
@@ -897,7 +1051,7 @@
         ]
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Network/applicationGateways', parameters('AppGWName'))]",
+        "[resourceId('Microsoft.Network/applicationGateways', parameters('AppGatewayName'))]",
         "[resourceId('Microsoft.OperationalInsights/workspaces', toLower(format('log-{0}', uniqueString(resourceGroup().id))))]"
       ]
     }
