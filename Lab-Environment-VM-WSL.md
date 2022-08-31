@@ -8,9 +8,9 @@
 # 部署Azure测试环境  
 本实验提供自动部署和手动部署两个选项，如果对Azure非常熟悉且有过Application Gateway及Container Instance相关使用经验可以使用自动部署部署测试环境，否则建议通过手动部署的方式了解相关服务的配置。
 ## 自动部署
-自动部署通过使用ARM Template实现，可以直接点击如下按钮或者复制[template文件](https://raw.githubusercontent.com/muismu/Azure-WAF-Lab/main/bicep/main.json)通过Azure portal进行部署, 除了Region及虚拟机的User Password之外的参数保持默认即可，无需修改。  
+自动部署通过使用ARM Template实现，可以直接点击如下按钮或者复制[template文件](https://raw.githubusercontent.com/muismu/Azure-WAF-Lab/main/bicep/main-vm.json)通过Azure portal进行部署, 除了Region及虚拟机的User Password之外的参数保持默认即可，无需修改。  
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fmain.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fmain-vm.json)
 ## 手动部署   
 ### 1. 创建Virtual Network
 在本实验中需要创建如下三个子网:    
@@ -179,5 +179,38 @@ Listener部分配置如下:
 ### 8. 验证JuiceShop-B实例正常工作
 在资源创建完后登录[步骤2](#2-创建kali虚拟机)创建菜单虚拟机使用浏览器访问`http://<Contianer Instance Private IP>:3000`确认可以正常访问juice shop应用
 ![juiceshop](./images/vm-wsl/juiceshop-b-verification.png)
+
+### 9. 创建Log Analytics Workspace  
+(1). 在Azure Portal首页,搜索`Log Analytics workspaces`, 然后点击`Create`
+
+(2). 在Baiscs配置页面，输入workspace的名字及选择对应的区域  
+
+![workspace](./images/Vm/workspace-1-advanced.png)
+
+(3). 其它配置保持默认即可，点击`Review + create`创建资源  
+
+### 10. 配置Application Gateway的诊断日志 
+(1). 选择[步骤5](#5-创建application-gateway)所创建的Application Gateway  
+(2). 打开Application Gateway的`Diagnostic settings`
+
+![AppGWDiagnostic](./images/appgw/appgw-7-appgw-diagnostics.png)
+
+(3). 点击`Add diagnostic setting`新增配置,按如下配置将Application Gateway Firewall Log发送到[步骤9](#9-创建log-analytics-workspace)中
+
+![配置diagnostic](./images/appgw/appgw-9-appgw-logs.png)
+
+### 11. 创建WAF Workbook  
+(1). 在Azure Portal首页,搜索`Azure Workbooks`, Azure Workbooks界面点击`Create`
+(2). Monitor | Workbooks |Gallery界面点击`+ New`，创建新的Workbooks 
+
+![workbooks](./images/Vm/workbooks-1-new.png)
+
+(3). 在新界面点击`Advanced Editor`
+
+![AdvancedEditor](./images/Vm/workbooks-2-advanced.png)
+
+(4). 复制[Workbooks ARM Template](https://raw.githubusercontent.com/muismu/Azure-WAF-Lab/main/bicep/workbooks.json)的内容粘贴至编辑器中并保存  
+
+
 
 # [下一步](./Lab-Configure-WSL-Burpsuite.md)
