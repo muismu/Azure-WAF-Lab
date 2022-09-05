@@ -14,4 +14,46 @@ Azure Front Door Premium可以通过Private Link连接部署于VNet、Azure App 
 自动部署通过使用ARM Template实现，可以直接点击如下按钮或者复制[template文件](https://raw.githubusercontent.com/muismu/Azure-WAF-Lab/main/bicep/main-frontdoor.json)通过Azure portal进行部署, 所有参数保持默认即可，无需修改.  
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fmain-frontdoor.json)
-## 手动部署
+## 手动部署  
+
+### 1. 创建虚拟网络(VNET)   
+
+***注意事项***   
+本部分可以在[基础实验-选项一](./Lab-Environment-VM-WSL.md)或者[基础实验-选项二](./Lab-Environment-Local-WSL.md)的基础上进行，如果使用已有环境，请在后续步骤中调整相应的网络配置  
+
+本实验需要如下三个子网:  
+* JuiceshopSubnet: 用于部署Juice Shop应用程序
+* LoadBalancerSubnet: 用于部署Azure Load Balancer
+* PrivateLinkServiceSubnet: 用于部署Private Link Service   
+
+进入Azure Portal,点击`+ Create a resource`, 搜索`Virtual network`，点击`Create`进行创建,创建时只需配置Basics和IP Addresses部分的配置，其余保留默认即可,其中三个子网的配置分别如下:   
+
+| Subnet Name              | Subnet Address Space | 
+| :-----------------------:| :------------------: |
+| JuiceshopSubnet | 10.0.0.0/24 |
+| LoadBalancerSubnet | 10.0.1.0/24 |
+| PrivateLinkServiceSubnet | 10.0.2.0/24 |   
+
+Basics配置部分如下图所示，可以根据需求修改`Virtual network name`和`Region`
+![Vnet-basics](./images/frontdoor/frontdoor-1-Vnet-basics.png)  
+
+IP addresses配置部分如后续图片所示进行配置，可以根据需要修改VNET地址空间  
+![Vnet-ip-addresses-1](./images/frontdoor/frontdoor-2-Vnet-ip-1.png)  
+![Vnet-ip-addresses-2](./images/frontdoor/frontdoor-2-Vnet-ip-2.png)
+![Vnet-ip-addresses-3](./images/frontdoor/frontdoor-2-Vnet-ip-3.png)
+![Vnet-ip-addresses-3](./images/frontdoor/frontdoor-2-Vnet-ip-4.png)  
+
+### 2. 创建NAT gateways    
+由于Juice Shop应用程序部署时不选择Public IP，无法直接访问互联网，需要通过NAT gateways进行访问
+在Azure Portal中的搜索框中搜素`NAT`,选择`NAT gateways`并点击`Create`  
+
+Basics部分配置如下，可以根据需要修改`NAT gateway name`, `Region`及`Availability zone`等信息 
+![basics](./images/frontdoor/frontdoor-3-NAT-1.png)
+
+在Outbound IP配置部分，点击`Create a new public IP address`创建一个新的Public IP addresses 
+![outboundip](./images/frontdoor/frontdoor-3-NAT-2.png)
+
+在Subnet配置部分，选择和[步骤一](#创建虚拟网络vnet)中所创建的`JuiceshopSubnet`进行关联，使其能够访问互联网 
+![subnetass](./images/frontdoor/frontdoor-3-NAT-3.png)
+
+其余配置保持不变，点击`Review + create`提交资源创建请求

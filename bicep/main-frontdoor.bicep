@@ -40,12 +40,6 @@ resource WAFVNet 'Microsoft.Network/virtualNetworks@2022-01-01' = {
           privateLinkServiceNetworkPolicies: 'Disabled'
         }
       }
-      {
-        name: 'NATGateway'
-        properties: {
-          addressPrefix: '10.0.3.0/24'
-        }
-      }
     ]
   }
   resource JuiceshopSubnet 'subnets' existing = {
@@ -56,9 +50,6 @@ resource WAFVNet 'Microsoft.Network/virtualNetworks@2022-01-01' = {
   }
   resource PrivateLinkServiceSubnet 'subnets' existing = {
     name: 'PrivateLinkServiceSubnet'
-  }
-  resource NATGateway 'subnets' existing = {
-    name: 'NATGateway'
   }
 }
 
