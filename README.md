@@ -42,4 +42,4 @@ Azure WAF on Front Door是一个集中化的应用程序防护方案, WAF on Fro
 
 本实验我们仍将通过OWASP Juice Shop检测WAF on Front Door的防护能力，同时展示如何通过Azure Private Link连接Front Door和后端应用程序。
 
-详细步骤参考[WAFOnFrontDoor](./Lab-Frontdoor-With-PrivateLink.md)
+详细步骤参考[WAF On FrontDoor](./Lab-Frontdoor-With-PrivateLink.md)
