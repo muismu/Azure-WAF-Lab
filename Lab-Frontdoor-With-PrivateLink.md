@@ -57,3 +57,63 @@ Basics部分配置如下，可以根据需要修改`NAT gateway name`, `Region`�
 ![subnetass](./images/frontdoor/frontdoor-3-NAT-3.png)
 
 其余配置保持不变，点击`Review + create`提交资源创建请求
+
+### 3. 创建Juice Shop虚拟机  
+在本实验中Juice Shop应用程序将通过容器的方式运行在虚拟机中，并暴露80端口
+
+在Azure Portal中的搜索框中搜素`Virtual machines`,选择`Virtual machines`并点击`Create` 
+
+Basics部分的主要配置参数(未提及参数可以按需填写)如下:  
+* Virtual machine name: `juiceshop`
+* Image: `Ubuntu Server 22.04 LTS - Gen2`
+* VM architecture: `x64`
+* Size: `Standard_D2s_v5`  
+* Authenticaton type: `Password`
+* Inbound port rules: `None`
+
+![vm-basics-1](./images/frontdoor/frontdoor-4-VM-basics-1.png)
+
+![vm-basics-2](./images/frontdoor/frontdoor-4-VM-basics-2.png)  
+
+Networking部分的主要配置参数(未提及参数可以按需填写)如下: 
+* Virtual network: [步骤一](#1-创建虚拟网络vnet)中创建的VNET  
+* Subnet: [步骤一](#1-创建虚拟网络vnet)中创建的JuiceshopSubnet  
+* Public IP: `None`
+* NIC network security group: `Basic`
+* Public inbound ports:  `Allow selected ports`
+* Select inbound ports: `80` 
+
+![vm-networking](./images/frontdoor/frontdoor-4-VM-Networking.png)
+
+Advanced部分需要配置Custom data，填入如下脚本:   
+
+```
+#cloud-config
+package_upgrade: true
+packages:
+  - ca-certificates
+  - gnupg
+  - gnupg2
+  - lsb-release
+  - curl
+write_files:
+  - owner: root:root
+    path: /etc/apt/sources.list.d/docker.list
+    content: |
+      deb http://http.kali.org/kali kali-rolling main non-free contrib
+runcmd:
+  - sudo mkdir -p /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - sudo apt-get update
+  - sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  - sudo systemctl enable docker
+  - sudo systemctl restart docker
+  - sudo docker run -p 80:3000 bkimminich/juice-shop:v14.1.1
+```  
+
+![customdata](./images/frontdoor/frontdoor-4-VM-Advanced.png)
+
+其它部分保持默认配置,点击`Create + review`提交资源创建请求
+
+### 3. 创建Load Balancer    
