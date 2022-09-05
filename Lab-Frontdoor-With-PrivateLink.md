@@ -186,3 +186,68 @@ Outbound settings部分配置如下:
 ![ps-out](./images/frontdoor/frontdoor-6-PS-out.png)
 
 其余部分配置保持默认即可，点击`Create + review`提交资源创建
+
+### 6. 创建WAF Policy
+在Azure Portal中的搜索框中搜素`WAF`,选择`Web Application Firewall policies (WAF)`并点击`Create` 
+
+Basics部分的主要配置参数(未提及参数可以按需填写)如下:
+* Policy for: `Global WAF(Front Door)`
+* Front door tier: `Premium`
+* Policy name: `juiceshop`
+* Policy state: `checked`
+* Policy mode: `Prevention`
+
+![wafpolicy-basics](./images/frontdoor/frontdoor-7-WAF-basics.png)
+
+Managed rules部分的主要配置参数(未提及参数可以按需填写)如下:
+* Default rule set: `Microsoft_DefaultRuleSet`
+* Anomaly score action: `Block`
+* Additional rule set: `None`  
+
+![managedruels](./images/frontdoor/frontdoor-7-WAF-rules.png)
+
+其余部分配置保持默认即可，点击`Create + review`提交资源创建
+
+### 7. 创建Front Door
+在Azure Portal中的搜索框中搜素`Front Door`,选择`Front Door and CDN profiles`并点击`Create` 
+
+在Compare offerings部分，选择`Azure Front Door`
+
+Basics部分的主要配置参数(未提及参数可以按需填写)如下: 
+* Name: `juiceshop`
+* Tier: `Premium`
+* Endpoint name: `juiceshop`
+* Origin type: `Custom`
+* Origin host name: 选择[步骤四](#4-创建load-balancer)所创建Load Balancer的frontend ip 
+* Private link: `Enable private link service`
+* Selecta private link: `In my directory`
+* Resource: 选择[步骤五](#5-创建private-link-services)所创建的Private Link service
+* WAF policy: 选择[步骤六](#6-创建waf-policy)所创建的WAF Policy
+
+![frontdoor-basics](./images/frontdoor/frontdoor-8-frontdoor-basics.png)
+
+![frontdoor-basics-1](./images/frontdoor/frontdoor-8-frontdoor-basics-1.png)
+
+其余部分配置保持默认即可，点击`Create + review`提交资源创建
+
+### 8. 批准Private Link请求  
+选择[步骤五](#5-创建private-link-services)中所创建的Private Link Service,在`Settings` --> `Private endpoint connections`部分批准Front Door的Private Link创建请求  
+![approval](./images/frontdoor/frontdoor-9-approve.png)
+
+### 9. 修改Front Door的Route  
+选择[步骤七](#7-创建front-door)所创建的Front Door服务，如下图所示,在`Settings` --> `Front Door manager`中修改default-route 
+
+![modifyroute](./images/frontdoor/frontdoor-10-edit-rules.png)
+
+将Route的`Forwarding protocol`改为HTTP only
+![modifyprotocol](./images/frontdoor/frontdoor-10-edit-rules-1.png)
+
+### 10. 验证Juice Shop状态  
+选择[步骤七](#7-创建front-door)所创建的Front Door服务，如下图所示,复制`Overview` --> `Properties` --> `Endpoints`的Endpoint hostname并访问，确认Juice workshop可以如下图所示正常访问
+![juiceshop](./images/frontdoor/frontdoor-11.png)
+
+### 11. 验证WAF防护能力
+参考如下部分对WAF的防护能力进行验证:  
+* [侦察攻击(Reconnaissance Attack)](./Lab-Reconnaissance.md)
+* [漏洞利用(Vulnerability Exploit)](./Lab-Attack.md)
+* [数据窃取(Exfiltration)](./Lab-Data-Exfiltration.md)
