@@ -116,4 +116,73 @@ runcmd:
 
 其它部分保持默认配置,点击`Create + review`提交资源创建请求
 
-### 3. 创建Load Balancer    
+### 4. 创建Load Balancer 
+Internal Load Balancer是创建Private Link Service的必要条件，并且在创建Backend Pool时必须使用NIC的模式  
+
+在Azure Portal中的搜索框中搜素`Load Balancer`,选择`Load Balancer`并点击`Create` 
+
+Basics部分的主要配置参数(未提及参数可以按需填写)如下:  
+* Name: `juiceshop`
+* SKU: `Standard`
+* Type: `Internal`
+* Tier: `Regional` 
+
+![lb-basics](./images/frontdoor/frontdoor-5-LB-Basics.png)  
+
+在Frontend IP部分，点击`Add a frontend IP configuration`, 具体配置如下:  
+* Name: `juiceshop`
+* Virtual network: [步骤一](#1-创建虚拟网络vnet)中创建的VNET  
+* Subnet: [步骤一](#1-创建虚拟网络vnet)中创建的LoadBalancerSubnet
+* Assignment: `Dynamic`  
+
+![LB-FrontendIP](./images/frontdoor/frontdoor-5-LB-FrontIP.png)
+
+在Backend Pools部分，点击`Add a backend pool`，具体配置如下:  
+* Name: `juiceshop`
+
+在IP configuratons部分点击`Add`,选择[步骤三]中创建的虚拟机
+
+![backendpool-1](./images/frontdoor/frontdoor-5-LB-Backendpool.png)
+
+![backendpool-2](./images/frontdoor/frontdoor-5-LB-Backendpool-1.png)
+
+在Inbound rules部分，点击`Add a load balancing rule`，创建新的规则,规则配置如下: 
+* Name: `juiceshop` 
+* IP Version: `IPv4`
+* Frontend IP address: 选择前面所创建的Frontend IP
+* Backend pool: 选择Backend Pools中所创建的backend
+* Protocol: `TCP`
+* Port: `80`
+* Backend port: `80`
+* Health probe: `Create new`
+
+![lb-rules](./images/frontdoor/frontdoor-5-LB-rules.png)  
+
+Health probe的配置如下: 
+* Name: `juiceshop`
+* Protocol: `HTTP`
+* Port: `80`
+* Path: `/`
+* interval: `5`
+
+![lb-healthcheck](./images/frontdoor/frontdoor-5-LB-rules-health.png)
+
+其它配置保持默认即可，点击`Create + review`提交资源创建  
+
+### 5. 创建Private link services 
+在Azure Portal中的搜索框中搜素`Private link services`,选择`Private link services`并点击`Create`  
+
+Basics配置部分按实际需求选择即可:  
+![ps-basics](./images/frontdoor/frontdoor-6-PS-basics.png)
+
+Outbound settings部分配置如下:  
+* Load balancer: 选择[步骤四]中创建的Load Balancer  
+* Load balancer frontend IP address: 选择[步骤四]中创建的Load Balancer的frontend IP  
+* Source NAT Virtual network: 选择[步骤一](#1-创建虚拟网络vnet)中创建的VNET
+* Source NAT subnet:  选择[步骤一](#1-创建虚拟网络vnet)中创建的PrivateLinkServiceSubnet
+* Enable TCP proxy V2: `No`
+* Private IP address settings-Allocation: `Dynamic`  
+
+![ps-out](./images/frontdoor/frontdoor-6-PS-out.png)
+
+其余部分配置保持默认即可，点击`Create + review`提交资源创建
