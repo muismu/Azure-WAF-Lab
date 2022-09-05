@@ -1,0 +1,471 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.9.1.41621",
+      "templateHash": "15983320845377728825"
+    }
+  },
+  "parameters": {
+    "ResourceLocation": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "VMSize": {
+      "type": "string",
+      "defaultValue": "Standard_B2s"
+    },
+    "Username": {
+      "type": "string",
+      "defaultValue": "azureuser"
+    },
+    "LBName": {
+      "type": "string",
+      "defaultValue": "[toLower(format('Juiceshop-{0}', uniqueString(resourceGroup().id)))]"
+    },
+    "UserPassword": {
+      "type": "secureString"
+    }
+  },
+  "variables": {
+    "$fxv#0": "I2Nsb3VkLWNvbmZpZwpwYWNrYWdlX3VwZ3JhZGU6IHRydWUKcGFja2FnZXM6CiAgLSBjYS1jZXJ0aWZpY2F0ZXMKICAtIGdudXBnCiAgLSBnbnVwZzIKICAtIGxzYi1yZWxlYXNlCiAgLSBjdXJsCndyaXRlX2ZpbGVzOgogIC0gb3duZXI6IHJvb3Q6cm9vdAogICAgcGF0aDogL2V0Yy9hcHQvc291cmNlcy5saXN0LmQvZG9ja2VyLmxpc3QKICAgIGNvbnRlbnQ6IHwKICAgICAgZGViIGh0dHA6Ly9odHRwLmthbGkub3JnL2thbGkga2FsaS1yb2xsaW5nIG1haW4gbm9uLWZyZWUgY29udHJpYgpydW5jbWQ6CiAgLSBzdWRvIG1rZGlyIC1wIC9ldGMvYXB0L2tleXJpbmdzCiAgLSBjdXJsIC1mc1NMIGh0dHBzOi8vZG93bmxvYWQuZG9ja2VyLmNvbS9saW51eC91YnVudHUvZ3BnIHwgc3VkbyBncGcgLS1kZWFybW9yIC1vIC9ldGMvYXB0L2tleXJpbmdzL2RvY2tlci5ncGcKICAtIGVjaG8gImRlYiBbYXJjaD0kKGRwa2cgLS1wcmludC1hcmNoaXRlY3R1cmUpIHNpZ25lZC1ieT0vZXRjL2FwdC9rZXlyaW5ncy9kb2NrZXIuZ3BnXSBodHRwczovL2Rvd25sb2FkLmRvY2tlci5jb20vbGludXgvdWJ1bnR1ICQobHNiX3JlbGVhc2UgLWNzKSBzdGFibGUiIHwgc3VkbyB0ZWUgL2V0Yy9hcHQvc291cmNlcy5saXN0LmQvZG9ja2VyLmxpc3QgPiAvZGV2L251bGwKICAtIHN1ZG8gYXB0LWdldCB1cGRhdGUKICAtIHN1ZG8gYXB0LWdldCAteSBpbnN0YWxsIGRvY2tlci1jZSBkb2NrZXItY2UtY2xpIGNvbnRhaW5lcmQuaW8gZG9ja2VyLWNvbXBvc2UtcGx1Z2luCiAgLSBzdWRvIHN5c3RlbWN0bCBlbmFibGUgZG9ja2VyCiAgLSBzdWRvIHN5c3RlbWN0bCByZXN0YXJ0IGRvY2tlcgogIC0gc3VkbyBkb2NrZXIgcnVuIC1wIDgwOjMwMDAgYmtpbW1pbmljaC9qdWljZS1zaG9wOnYxNC4xLjE="
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2022-01-01",
+      "name": "[toLower(format('VNet-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.0.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "JuiceshopSubnet",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24",
+              "natGateway": {
+                "id": "[resourceId('Microsoft.Network/natGateways', toLower(format('juiceshop-{0}', uniqueString(resourceGroup().id))))]"
+              }
+            }
+          },
+          {
+            "name": "LoadBalancerSubnet",
+            "properties": {
+              "addressPrefix": "10.0.1.0/24"
+            }
+          },
+          {
+            "name": "PrivateLinkServiceSubnet",
+            "properties": {
+              "addressPrefix": "10.0.2.0/24",
+              "privateLinkServiceNetworkPolicies": "Disabled"
+            }
+          },
+          {
+            "name": "NATGateway",
+            "properties": {
+              "addressPrefix": "10.0.3.0/24"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/natGateways', toLower(format('juiceshop-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2022-01-01",
+      "name": "[toLower(format('juiceshop-nat-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "publicIPAddressVersion": "IPv4",
+        "idleTimeoutInMinutes": 4
+      }
+    },
+    {
+      "type": "Microsoft.Network/natGateways",
+      "apiVersion": "2022-01-01",
+      "name": "[toLower(format('juiceshop-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIpAddresses": [
+          {
+            "id": "[resourceId('Microsoft.Network/publicIPAddresses', toLower(format('juiceshop-nat-{0}', uniqueString(resourceGroup().id))))]"
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', toLower(format('juiceshop-nat-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2021-05-01",
+      "name": "[toLower(format('KaliNSG-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "HTTP",
+            "properties": {
+              "priority": 1000,
+              "protocol": "Tcp",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "80"
+            }
+          },
+          {
+            "name": "HTTP3000",
+            "properties": {
+              "priority": 800,
+              "protocol": "Tcp",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourceAddressPrefix": "*",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "3000"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2021-05-01",
+      "name": "[toLower(format('JuiceVMNIC-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))), 'JuiceshopSubnet')]"
+              },
+              "privateIPAllocationMethod": "Dynamic",
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('LBName'), 'juiceshopbackend')]"
+                }
+              ]
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', toLower(format('KaliNSG-{0}', uniqueString(resourceGroup().id))))]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/loadBalancers', parameters('LBName'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', toLower(format('KaliNSG-{0}', uniqueString(resourceGroup().id))))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2021-11-01",
+      "name": "[toLower(format('Juiceshop-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('VMSize')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            }
+          },
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "0001-com-ubuntu-server-jammy",
+            "sku": "22_04-lts-gen2",
+            "version": "latest"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', toLower(format('JuiceVMNIC-{0}', uniqueString(resourceGroup().id))))]"
+            }
+          ]
+        },
+        "osProfile": {
+          "computerName": "Juiceshop",
+          "adminUsername": "[parameters('Username')]",
+          "adminPassword": "[parameters('UserPassword')]",
+          "customData": "[variables('$fxv#0')]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', toLower(format('JuiceVMNIC-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/loadBalancers",
+      "apiVersion": "2022-01-01",
+      "name": "[parameters('LBName')]",
+      "location": "[parameters('ResourceLocation')]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Regional"
+      },
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "juiceshop",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))), 'LoadBalancerSubnet')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "juiceshopbackend"
+          }
+        ],
+        "probes": [
+          {
+            "name": "juiceshop",
+            "properties": {
+              "port": 80,
+              "protocol": "Http",
+              "requestPath": "/",
+              "intervalInSeconds": 15,
+              "numberOfProbes": 2
+            }
+          }
+        ],
+        "loadBalancingRules": [
+          {
+            "name": "juiceshop",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', parameters('LBName'), 'juiceshop')]"
+              },
+              "backendAddressPool": {
+                "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', parameters('LBName'), 'juiceshopbackend')]"
+              },
+              "probe": {
+                "id": "[resourceId('Microsoft.Network/loadBalancers/probes', parameters('LBName'), 'juiceshop')]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 80,
+              "backendPort": 80
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/FrontDoorWebApplicationFirewallPolicies",
+      "apiVersion": "2020-11-01",
+      "name": "[toLower(format('juiceshopwaf{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "sku": {
+        "name": "Premium_AzureFrontDoor"
+      },
+      "properties": {
+        "managedRules": {
+          "managedRuleSets": [
+            {
+              "ruleSetType": "Microsoft_DefaultRuleSet",
+              "ruleSetVersion": "2.0",
+              "ruleSetAction": "Block"
+            }
+          ]
+        },
+        "policySettings": {
+          "mode": "Prevention",
+          "enabledState": "Enabled",
+          "requestBodyCheck": "Enabled"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/privateLinkServices",
+      "apiVersion": "2022-01-01",
+      "name": "[toLower(format('Juiceshop-{0}', uniqueString(resourceGroup().id)))]",
+      "location": "[parameters('ResourceLocation')]",
+      "properties": {
+        "enableProxyProtocol": false,
+        "loadBalancerFrontendIpConfigurations": [
+          {
+            "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIpConfigurations', parameters('LBName'), 'juiceshop')]"
+          }
+        ],
+        "ipConfigurations": [
+          {
+            "name": "juiceshop-ps",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "privateIPAddressVersion": "IPv4",
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))), 'PrivateLinkServiceSubnet')]"
+              },
+              "primary": false
+            }
+          }
+        ],
+        "autoApproval": {
+          "subscriptions": [
+            "*"
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', toLower(format('VNet-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Cdn/profiles",
+      "apiVersion": "2021-06-01",
+      "name": "juiceshop",
+      "location": "global",
+      "sku": {
+        "name": "Premium_AzureFrontDoor"
+      },
+      "properties": {
+        "originResponseTimeoutSeconds": 20
+      }
+    },
+    {
+      "type": "Microsoft.Cdn/profiles/afdEndpoints",
+      "apiVersion": "2021-06-01",
+      "name": "[format('{0}/{1}', 'juiceshop', 'juiceshop')]",
+      "location": "global",
+      "properties": {
+        "enabledState": "Enabled"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Cdn/profiles', 'juiceshop')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Cdn/profiles/originGroups",
+      "apiVersion": "2021-06-01",
+      "name": "[format('{0}/{1}', 'juiceshop', 'juiceshop')]",
+      "properties": {
+        "loadBalancingSettings": {
+          "sampleSize": 4,
+          "successfulSamplesRequired": 3
+        },
+        "healthProbeSettings": {
+          "probeIntervalInSeconds": 20,
+          "probePath": "/",
+          "probeProtocol": "Http",
+          "probeRequestType": "GET"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Cdn/profiles', 'juiceshop')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Cdn/profiles/originGroups/origins",
+      "apiVersion": "2021-06-01",
+      "name": "[format('{0}/{1}/{2}', 'juiceshop', 'juiceshop', 'Juiceshop')]",
+      "properties": {
+        "hostName": "[reference(resourceId('Microsoft.Network/loadBalancers', parameters('LBName'))).frontendIPConfigurations[0].properties.privateIPAddress]",
+        "originHostHeader": "[reference(resourceId('Microsoft.Network/loadBalancers', parameters('LBName'))).frontendIPConfigurations[0].properties.privateIPAddress]",
+        "priority": 1,
+        "weight": 1000,
+        "enabledState": "Enabled",
+        "sharedPrivateLinkResource": {
+          "privateLink": {
+            "id": "[resourceId('Microsoft.Network/privateLinkServices', toLower(format('Juiceshop-{0}', uniqueString(resourceGroup().id))))]"
+          },
+          "privateLinkLocation": "[parameters('ResourceLocation')]",
+          "requestMessage": "juiceshop"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/loadBalancers', parameters('LBName'))]",
+        "[resourceId('Microsoft.Cdn/profiles/originGroups', 'juiceshop', 'juiceshop')]",
+        "[resourceId('Microsoft.Network/privateLinkServices', toLower(format('Juiceshop-{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
+      "apiVersion": "2021-06-01",
+      "name": "[format('{0}/{1}/{2}', 'juiceshop', 'juiceshop', 'juiceshop')]",
+      "properties": {
+        "originGroup": {
+          "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', 'juiceshop', 'juiceshop')]"
+        },
+        "supportedProtocols": [
+          "Http",
+          "Https"
+        ],
+        "patternsToMatch": [
+          "/*"
+        ],
+        "forwardingProtocol": "HttpOnly",
+        "linkToDefaultDomain": "Enabled",
+        "httpsRedirect": "Disabled",
+        "enabledState": "Enabled"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', 'juiceshop', 'juiceshop')]",
+        "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', 'juiceshop', 'juiceshop', 'Juiceshop')]",
+        "[resourceId('Microsoft.Cdn/profiles/originGroups', 'juiceshop', 'juiceshop')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Cdn/profiles/securityPolicies",
+      "apiVersion": "2021-06-01",
+      "name": "[format('{0}/{1}', 'juiceshop', 'juiceshopsecurity')]",
+      "properties": {
+        "parameters": {
+          "type": "WebApplicationFirewall",
+          "wafPolicy": {
+            "id": "[resourceId('Microsoft.Network/FrontDoorWebApplicationFirewallPolicies', toLower(format('juiceshopwaf{0}', uniqueString(resourceGroup().id))))]"
+          },
+          "associations": [
+            {
+              "domains": [
+                {
+                  "id": "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', 'juiceshop', 'juiceshop')]"
+                }
+              ],
+              "patternsToMatch": [
+                "/*"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', 'juiceshop', 'juiceshop')]",
+        "[resourceId('Microsoft.Cdn/profiles', 'juiceshop')]",
+        "[resourceId('Microsoft.Network/FrontDoorWebApplicationFirewallPolicies', toLower(format('juiceshopwaf{0}', uniqueString(resourceGroup().id))))]"
+      ]
+    }
+  ]
+}
