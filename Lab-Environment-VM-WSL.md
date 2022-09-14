@@ -42,7 +42,7 @@
 
 
 (2). 在Basics部分，按照如下参数进行配置(部分参数未提供,按需求填写即可):  
-* Image: `Windows Server 2022 Datacenter`
+* Image: `Windows 11 Pro - Gen2`
 * Size: `Standard_D2s_v5`  
 ![basics-1](./images/Vm/vm-2-basics-1.png)
 ![basics-2](./images/Vm/vm-2-basics-2.png) 
