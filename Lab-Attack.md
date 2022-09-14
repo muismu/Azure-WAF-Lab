@@ -39,14 +39,18 @@ Burp Suite将会被用来检测应用请求和响应以对比在使用Azure WAF�
   
 4. 在Burp Suite界面上点击 ***Target*** --> ***Scope*** 设置Burp Suite只捕获特定网站的响应和请求，在本实验中，需要捕获从VM至Juice Shop实例及至Application Gateway的请求和响应，配置内容如下:  
 &ensp; 在 ***Include in scope*** 部分，添加如下两个URL:  
-&ensp; 1. http://{Jucie Shop Container Instance IP}:3000/  
+
+&ensp; 1. http://{Jucie Shop Container Instance IP}:3000/    
+
 &ensp; 2. http://{Application Gateway IP}/
 
-&ensp; 在 ***Exclude from scope*** 部分添加如下两个URL来减少捕获的无用信息  
-&ensp; (1). http://{Jucie Shop Container Instance IP}:3000/socket.io/
+&ensp; 在 ***Exclude from scope*** 部分添加如下两个URL来减少捕获的无用信息   
+
+&ensp; (1). http://{Jucie Shop Container Instance IP}:3000/socket.io/  
+
 &ensp; (2). http://{Application Gateway IP}/socket.io/     
 
-![BurpsuiteScope](./images/BurpSuite/Burp-6-ScopeConfig.png     
+![BurpsuiteScope](./images/BurpSuite/Burp-6-ScopeConfig.png)   
 
 5. 在Burp Suite界面上点击 ***Proxy*** --> ***HTTP history***查看捕获的请求和响应，在查看时可以修改排序以查看最新捕获的请求  
 ![CheckHttpHistory](./images/BurpSuite/Burp-7-History.png)
