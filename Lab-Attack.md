@@ -31,20 +31,20 @@ Burp Suite将会被用来检测应用请求和响应以对比在使用Azure WAF�
 3. 在启动后的界面上选择 ***Proxy*** --> ***Intercept*** --> ***Open browser*** 打开Burp Suite内置浏览器访问Jucice Workshop应用程序及Application Gateway，确认可以正常访问应用   
 ![BurpBroserTest](./images/BurpSuite/Burp-3-BroswerTest.png) 
 
-直接访问Container Instance的Public IP上的3000端口  
+直接访问Container Instance IP上的3000端口  
 ![DirectAccess](./images/BurpSuite/Burp-4-DirectAccess.png)
 
-直接访问Application Gateway的Public IP
+直接访问Application Gateway IP
 ![AppGWAccess](./images/BurpSuite/Burp-5-AppGWAccess.png)
   
 4. 在Burp Suite界面上点击 ***Target*** --> ***Scope*** 设置Burp Suite只捕获特定网站的响应和请求，在本实验中，需要捕获从VM至Juice Shop实例及至Application Gateway的请求和响应，配置内容如下:  
 &ensp; 在 ***Include in scope*** 部分，添加如下两个URL:  
-&ensp; 1. <Jucie Shop Container Instance Private IP>:3000/  
-&ensp; 2. <Application Gateway Private IP>/
+&ensp; 1. Jucie Shop Container Instance IP:3000/  
+&ensp; 2. Application Gateway IP/
 
 &ensp; 在 ***Exclude from scope*** 部分添加如下两个URL来减少捕获的无用信息  
-&ensp; (1). <Jucie Shop Container Instance Private IP>:3000/socket.io/
-&ensp; (2). <Application Gateway Private IP>/socket.io/     
+&ensp; (1). Jucie Shop Container Instance IP:3000/socket.io/
+&ensp; (2). Application Gateway IP/socket.io/     
 ![BurpsuiteScope](./images/BurpSuite/Burp-6-ScopeConfig.png     
 
 5. 在Burp Suite界面上点击 ***Proxy*** --> ***HTTP history***查看捕获的请求和响应，在查看时可以修改排序以查看最新捕获的请求  
@@ -75,7 +75,7 @@ Burp Suite将会被用来检测应用请求和响应以对比在使用Azure WAF�
 ![SuccessfulXSS](./images/BurpSuite/Burp-11-successXSS.png)
 
 ### 第二次攻击  
-1. 打开Burp Suite的内置浏览器，直接访问Application Gateway的Public IP地址  
+1. 打开Burp Suite的内置浏览器，直接访问Application Gateway IP地址  
 
 2. 点击Juice Workshop左上角菜单栏，打开`Customer Feedback`部分
 ![feedback](./images/BurpSuite/Burp-12-gw-customerfeedbacks.png)   
