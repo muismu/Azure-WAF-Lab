@@ -15,6 +15,13 @@ Windows Subsystem for Linux (WSL)可以使开发者在Windows上无需运行虚�
 打开Microsoft Store(微软应用商店)搜索Kali Linux并安装，安装完成后打开设置用户名及密码:
 ![Kali Linux](./images/Kali-Linux.png)
 
+## 3. 安装nikto
+Kali Linux安装完后执行如下命令:  
+```
+sudo apt-get update
+sudo apt install -y nikto
+```
+
 ***注意事项***   
 如果已经使用了WSL Debian或者WSL Ubuntu,则可通过如下命令方式安装nikto   
 ```
@@ -25,7 +32,7 @@ sudo apt-get update
 sudo apt install -y nikto
 ```
 
-### 3. 安装Burp Suite Community应用安全测试软件 
+### 4. 安装Burp Suite Community应用安全测试软件 
 从Burp Suite官网下载并安装Burp Suite Community版本的软件,下载请点击[此处](https://portswigger.net/burp/releases/professional-community-2022-8-2?requestededition=community&requestedplatform=)
 
 
