@@ -169,7 +169,7 @@ Listener部分配置如下:
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmuismu%2FAzure-WAF-Lab%2Fmain%2Fbicep%2Fworkbooks.json)
 
-在配置的时候需要提供[步骤8]中创建的Workspace的Resource ID, 该ID可以在Workspace的Properties中查询
+在配置的时候需要提供[步骤9]中创建的Workspace的Resource ID, 该ID可以在Workspace的Properties中查询
 ![workbook](./images/appgw/appgw-10-appgw-logs-workbook.png)
 
 # [下一步](./Lab-Configure-WSL-Burpsuite.md)
