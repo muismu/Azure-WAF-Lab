@@ -7,7 +7,7 @@ Windows Subsystem for Linux (WSL)可以使开发者在Windows上无需运行虚�
 # 桌面环境配置
 桌面配置针对Azure Windows VM或者本地Windows
 ## 1. 安装WSL   
-打开Windows开始菜单，搜索"Turn Windows features on or off"并打开，打开的窗口中选择勾选Hyper-V并确定
+打开Windows开始菜单，搜索"Turn Windows features on or off"并打开，打开的窗口中选择勾选Windows Subsystem for Linux并确定
 ![Windows Programs](./images/TurnonWindowsFeature.png)  
 在安装完成后需要重启机器  
 
